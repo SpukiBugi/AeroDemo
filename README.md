@@ -1,6 +1,6 @@
 # nuxt_testing
 
-> My remarkable Nuxt.js project
+Nuxt Three.js project
 
 ## Build Setup
 
