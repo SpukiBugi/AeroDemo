@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrap">
-    <Menu page_img="/images/knk.png" />
+    <Menu page_img="images/knk.png" />
     <div class="container" ref="container">
     </div>
   </div>
@@ -19,8 +19,8 @@ export default {
 
   data() {
     return {
-      image: "/images/back.png",
-      image2: "/images/smoke.png",
+      image: "images/back.png",
+      image2: "images/smoke.png",
       scene: "",
       camera: "",
 

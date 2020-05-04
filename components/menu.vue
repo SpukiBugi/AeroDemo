@@ -31,8 +31,8 @@
 
     <div class="links-hider">
       <div class="links">
-        <a class="link-text" href="/aero">Aero</a>
-        <a class="link-text" href="/">Garden</a>
+        <nuxt-link to="/aero" class="link-text">Aero</nuxt-link>
+        <nuxt-link to="/" class="link-text">Garden</nuxt-link>
       </div>
     </div>
   </div>
