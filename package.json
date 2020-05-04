@@ -1,0 +1,26 @@
+{
+  "name": "nuxt_testing",
+  "version": "1.0.0",
+  "description": "My remarkable Nuxt.js project",
+  "author": "SpukiBugi",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "test": "jest"
+  },
+  "dependencies": {
+    "nuxt": "^2.0.0"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^1.0.0-beta.27",
+    "babel-jest": "^24.1.0",
+    "jest": "^24.1.0",
+    "node-sass": "^4.14.0",
+    "sass-loader": "^8.0.2",
+    "three": "^0.116.1",
+    "vue-jest": "^4.0.0-0"
+  }
+}

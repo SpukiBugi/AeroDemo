@@ -1,0 +1,81 @@
+@import "./_colors.scss";
+@import "./_variables.scss";
+@import "./fonts.scss";
+@import "./normalize.scss";
+@import "./buttons.scss";
+@import "./mixins.scss";
+@import "./form-styles.scss";
+
+html {
+  font-family: $FNT_PRIMARY;
+  color: $CLR_TEXT;
+}
+
+.content-wrapper {
+  display: flex;
+  margin-top: 60px;
+}
+
+.page-content {
+  min-height: calc(100vh - 60px);
+  width: 100%;
+  background-color: $CLR_GRAY_BACK;
+}
+
+.tool-title {
+  font-weight: bold;
+  font-size: 34px;
+  white-space: nowrap;
+  text-align: center; 
+}
+
+.tool-text {
+  margin-top: 12px;
+  font-size: 18px;
+  white-space: nowrap;
+  text-align: center; 
+}
+
+.mini-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.highlight {
+  color: $CLR_PRIMARY;
+}
+
+.angle-rotate {
+
+  .drop-angle {
+    transition: all .3s ease;
+  }
+
+  &.active {
+    .drop-angle {
+      transform: rotate(-180deg);
+    }
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .3s ease;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.sidebar-enter-active,
+.sidebar-leave-active {
+  transition: width .3s ease;
+}
+.sidebar-enter,
+.sidebar-leave-to {
+  width: 0 !important;
+}
