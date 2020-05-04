@@ -170,7 +170,7 @@ export default {
     },
 
     initMusic() {
-      this.audio = new Audio('/audio/garden.m4a');
+      this.audio = new Audio('audio/garden.m4a');
 
       window.addEventListener("click", this.playMusic);
     },
