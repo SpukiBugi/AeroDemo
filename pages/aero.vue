@@ -143,7 +143,7 @@ export default {
       /** Добавляем дым */
       let smokeTexture = THREE.ImageUtils.loadTexture('images/Smoke-Element.png');
       let smokeMaterial = new THREE.MeshLambertMaterial({color: 0x00dddd, map: smokeTexture, transparent: true});
-      let smokeGeo = new THREE.PlaneGeometry(100,100);
+      let smokeGeo = new THREE.PlaneGeometry(200,200);
 
       for (let p = 0; p < 150; p++) {
         let particle = new THREE.Mesh(smokeGeo,smokeMaterial);
@@ -237,7 +237,7 @@ export default {
     },
 
     initMusic() {
-      this.audio = new Audio('/audio/viper.mp3');
+      this.audio = new Audio('audio/viper.mp3');
       // this.audio.play();
 
       window.addEventListener("click", this.playMusic);
@@ -272,11 +272,11 @@ export default {
     .triangle-1 {
       opacity: 0.2;
     }
+  } 
+  
+  .triangle-1 {
+    opacity: 0;
   }
-}
-
-/deep/ .triangle-1 {
-  opacity: 0;
 }
 
 /deep/ .logo {
