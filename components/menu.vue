@@ -3,7 +3,7 @@
 */
 <template>
   <div class="head-wrap">
-    <svg class="svg" height="200" width="200" viewbox="0 0 350 350">
+    <svg class="svg" height="200" width="200" viewBox="0 0 350 350">
       <image class="logo" :href="page_img" x="15" y="15" height="100" width="100"/>
 
       <mask id="myMask">
@@ -31,14 +31,15 @@
 
     <div class="links-hider">
       <div class="links">
-        <nuxt-link to="/aero" class="link-text">Aero</nuxt-link>
-        <nuxt-link to="/" class="link-text">Garden</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" to="/aero" class="link-text">Aero</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" to="/" class="link-text">Garden</nuxt-link>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mount } from '@vue/test-utils'
 export default {
   name: 'Menu',
 

@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrap">
-    <Menu page_img="/images/viper_icon.jpg" />
+    <Menu page_img="images/viper_icon.jpg" />
     <div class="container" ref="container">
     </div>
   </div>
@@ -66,7 +66,12 @@ export default {
 
     window.addEventListener("resize", this.updateSize);
   },
-  
+
+  beforeDestroy() {
+    this.audio.pause();
+    window.removeEventListener("click", this.playMusic);
+  },
+
   methods: {
     initThree() {
       this.scene = new THREE.Scene();
@@ -95,7 +100,7 @@ export default {
     addText() {
       let textGeo = new THREE.PlaneGeometry(200,200);
       THREE.ImageUtils.crossOrigin = ''; //Need this to pull in crossdomain images from AWS
-      let textTexture = THREE.ImageUtils.loadTexture('https://s3-us-west-2.amazonaws.com/s.cdpn.io/95637/quickText.png');
+      let textTexture = THREE.ImageUtils.loadTexture('images/quickText.png');
       let textMaterial = new THREE.MeshLambertMaterial({color: 0x00ffff, opacity: 1, map: textTexture, transparent: true, blending: THREE.AdditiveBlending})
       let text = new THREE.Mesh(textGeo,textMaterial);
       text.position.z = 800;
@@ -105,7 +110,7 @@ export default {
     addImage() {
       /** Добавляем изображение */
       let imgGeo = new THREE.PlaneGeometry(400, 400);
-      let imgTexture = THREE.ImageUtils.loadTexture('/images/viper.jpg');
+      let imgTexture = THREE.ImageUtils.loadTexture('images/viper.jpg');
       let imgMaterial = new THREE.MeshLambertMaterial({color: 0x00ffff, opacity: 0.9, map: imgTexture, transparent: true, blending: THREE.AdditiveBlending})
       let img = new THREE.Mesh(imgGeo,imgMaterial);
       img.position.z = 800;
@@ -115,7 +120,7 @@ export default {
     /** Добавляем самолет */
     addPlane() {
       let gltf_loader = new GLTFLoader();
-      gltf_loader.load("/3d_models/plane3.gltf", (gltf) => {
+      gltf_loader.load("3d_models/plane3.gltf", (gltf) => {
         this.plane = gltf.scene.children[0];
         this.plane.scale.set(10, 10, 10);
         this.scene.add(gltf.scene);
@@ -136,7 +141,7 @@ export default {
 
     addSmoke() {
       /** Добавляем дым */
-      let smokeTexture = THREE.ImageUtils.loadTexture('https://s3-us-west-2.amazonaws.com/s.cdpn.io/95637/Smoke-Element.png');
+      let smokeTexture = THREE.ImageUtils.loadTexture('images/Smoke-Element.png');
       let smokeMaterial = new THREE.MeshLambertMaterial({color: 0x00dddd, map: smokeTexture, transparent: true});
       let smokeGeo = new THREE.PlaneGeometry(100,100);
 
@@ -233,7 +238,7 @@ export default {
 
     initMusic() {
       this.audio = new Audio('/audio/viper.mp3');
-      this.audio.play();
+      // this.audio.play();
 
       window.addEventListener("click", this.playMusic);
     },

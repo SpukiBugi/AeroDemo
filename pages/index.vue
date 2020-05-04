@@ -51,6 +51,11 @@ export default {
 
     window.addEventListener("resize", this.updateSize);
   },
+
+  beforeDestroy() {
+    this.audio.pause();
+    window.removeEventListener("click", this.playMusic);
+  },
   
   methods: {
     initThree() {
@@ -166,7 +171,6 @@ export default {
 
     initMusic() {
       this.audio = new Audio('/audio/garden.m4a');
-      this.audio.play();
 
       window.addEventListener("click", this.playMusic);
     },
