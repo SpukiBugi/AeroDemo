@@ -196,7 +196,7 @@ export default {
       this.signs.z = Math.sign(Math.random() - 0.5);
 
       this.plane.position.z = 700 + Math.floor(Math.random() * 300);
-      this.plane.position.x = this.signs.x * (1000 - this.plane.position.z) + this.signs.x * 10;
+      this.plane.position.x = this.signs.x * (1000 - this.plane.position.z) + this.signs.x * 50;
       this.plane.position.y = Math.random() * (1000 - this.plane.position.z) * this.signs.y;
 
       this.endpoint.y = Math.ceil(Math.random() - 0.5);
@@ -215,7 +215,7 @@ export default {
 
       setTimeout(() => {
         this.entering = false;
-      }, 2000);
+      }, 5000);
     },
  
     evolveSmoke() {
