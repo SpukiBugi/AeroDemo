@@ -22,12 +22,6 @@ export default {
   data() {
     return {
       pause: false,
-      /** Флаг сброса самолета */
-      destroy_plane: false,
-      /** Флаг входа самолета в поле видимости */
-      entering: true,
-      /** Флаг покидания самолета поля видимости */
-      leaving: false,
 
       scene: "",
       camera: "",
@@ -35,20 +29,31 @@ export default {
       clock: "",
       delta: "",
 
-      plane: "",
-      /** Флаги перемещения по осям самолета */
-      endpoint: {
-        x: 1,
-        y: Math.ceil(Math.random() - 0.5),
-        z: Math.ceil(Math.random() - 0.5)
-      },
-      /** Направления перемещения по осям самолета */
-      signs: {
-        x: Math.sign(Math.random() - 0.5),
-        y: Math.sign(Math.random() - 0.5),
-        z: Math.sign(Math.random() - 0.5)
-      },
+      /** Массив самолетов
+       * Самолет: {
+       *  object: {} - 3д объект самолета на сцене
+       *  destroy_pane: Boolean - Флаг сброса самолета
+       *  entering: Boolean - Флаг входа самолета в поле видимости
+       *  leaving: Boolean - Флаг покидания самолета поля видимости
+       *  endpoint: {
+            x: 1,
+            y: Math.ceil(Math.random() - 0.5),
+            z: Math.ceil(Math.random() - 0.5)
+       *  } - Флаги перемещения по осям самолета
+
+          signs: {
+            x: Math.sign(Math.random() - 0.5),
+            y: Math.sign(Math.random() - 0.5),
+            z: Math.sign(Math.random() - 0.5)
+          } - Направления перемещения по осям самолета (положительный/отрицательный знак)
+       * }
+       */
+      planes: [],
+
       smokeParticles: [],
+      smokeTexture: "",
+      smokeMaterial: "",
+      smokeGeo: "",
       cubeSineDriver: 0,
 
       audio: "",
@@ -57,19 +62,20 @@ export default {
 
   mounted() {
     this.initThree();
-    this.addText();
-    this.addImage();
-    this.addPlane();
-    this.addSmoke();
+    this.initElements();
 
-    this.initMusic();
+    if (process.client) {
+      this.initGUI();
+    };
 
     window.addEventListener("resize", this.updateSize);
   },
 
   beforeDestroy() {
-    this.audio.pause();
-    window.removeEventListener("click", this.playMusic);
+    if (this.audio) {
+      this.audio.pause();
+      window.removeEventListener("click", this.playMusic);
+    }
   },
 
   methods: {
@@ -96,6 +102,33 @@ export default {
       this.scene.add(light);
     },
 
+    async initElements() {
+      this.addText();
+      this.addImage();
+      await this.addPlane();
+      this.addSmoke();
+
+      /** Запуск анимации */
+      this.$refs.container.appendChild(this.renderer.domElement);
+      this.renderer.render( this.scene, this.camera );
+      this.animate(); 
+
+      this.initMusic();
+    },
+
+    initGUI() {
+      const gui = new dat.GUI();
+      let planesController = gui.add({planes: 1}, 'planes', 1, 10, 1);
+      planesController.onChange((value) => {
+        this.changePlaneNumber(value);
+      })
+
+      let smokeController = gui.add({blaze_meter: 150}, 'blaze_meter', 1, 420, 1);
+      smokeController.onChange((value) => {
+        this.changeSmoke(value);
+      })
+    },
+
     /** Добавляем текст */
     addText() {
       let textGeo = new THREE.PlaneGeometry(200,200);
@@ -118,35 +151,54 @@ export default {
     },
 
     /** Добавляем самолет */
-    addPlane() {
-      let gltf_loader = new GLTFLoader();
-      gltf_loader.load("3d_models/plane3.gltf", (gltf) => {
-        this.plane = gltf.scene.children[0];
-        this.plane.scale.set(10, 10, 10);
-        this.scene.add(gltf.scene);
+    async addPlane() {
+      return new Promise((resolve, reject) => {
+        let gltf_loader = new GLTFLoader();
 
-        this.resetPlane();
+        gltf_loader.load("3d_models/plane3.gltf", (gltf) => {
+          let plane = {
+            scene_id: gltf.scene.id,
+            destroy_plane: false,
+            entering: true,
+            leaving: false,
 
-        let light2 = new THREE.DirectionalLight(0xffffff, 1);
-        this.scene.add(light2);
-        light2.target = this.plane;
+            endpoint: {
+              x: 1,
+              y: Math.ceil(Math.random() - 0.5),
+              z: Math.ceil(Math.random() - 0.5)
+            },
+            signs: {
+              x: Math.sign(Math.random() - 0.5),
+              y: Math.sign(Math.random() - 0.5),
+              z: Math.sign(Math.random() - 0.5)
+            },
+          };
 
-        this.$refs.container.appendChild(this.renderer.domElement);
-        this.renderer.render( this.scene, this.camera );
+          plane.object = gltf.scene.children[0];
+          plane.object.scale.set(10, 10, 10);
+          this.scene.add(plane.object);
 
-        /** Запуск анимации */
-        this.animate(); 
+          this.resetPlane(plane);
+
+          let light2 = new THREE.DirectionalLight(0xffffff, 1);
+          this.scene.add(light2);
+          light2.target = plane.object;
+
+          this.planes.push(plane);
+
+          resolve('success');
+        });
       });
     },
 
     addSmoke() {
       /** Добавляем дым */
-      let smokeTexture = THREE.ImageUtils.loadTexture('images/Smoke-Element.png');
-      let smokeMaterial = new THREE.MeshLambertMaterial({color: 0x00dddd, map: smokeTexture, transparent: true});
-      let smokeGeo = new THREE.PlaneGeometry(200,200);
+      this.smokeTexture = THREE.ImageUtils.loadTexture('images/Smoke-Element.png');
+      this.smokeMaterial = new THREE.MeshLambertMaterial({color: 0x00dddd, map: this.smokeTexture, transparent: true});
+      this.smokeGeo = new THREE.PlaneGeometry(200,200);
 
       for (let p = 0; p < 150; p++) {
-        let particle = new THREE.Mesh(smokeGeo,smokeMaterial);
+        let particle = new THREE.Mesh(this.smokeGeo, this.smokeMaterial);
         particle.position.set(Math.random()*500-250,Math.random()*500-250,Math.random()*1000-100);
         particle.rotation.z = Math.random() * 360;
         this.scene.add(particle);
@@ -154,68 +206,95 @@ export default {
       }
     },
 
-    animate() {
-      this.delta = this.clock.getDelta(); 
+    changeSmoke(number) {
+      let current = this.smokeParticles.length;
 
-      this.planeBehavior();
-      this.evolveSmoke();
-      this.render()
-
-      requestAnimationFrame(this.animate);
+      if (number > current) {
+        for (let i = 0; i < number - current; i++) {
+          let particle = new THREE.Mesh(this.smokeGeo, this.smokeMaterial);
+          particle.position.set(Math.random()*500-250,Math.random()*500-250,Math.random()*1000-100);
+          particle.rotation.z = Math.random() * 360;
+          this.scene.add(particle);
+          this.smokeParticles.push(particle);
+        }
+      } else {
+        for (let i = 0; i < current - number; i++) {
+          let target = this.smokeParticles[this.smokeParticles.length - 1];
+          this.scene.remove(this.scene.getObjectById(target.id));
+          this.smokeParticles.pop();
+        }
+      }
     },
 
-    planeBehavior() {
+    planeBehavior(plane) {
       // Проверка есть ли самолет на камере
-      if (!this.destroy_plane || this.leaving) {
+      if (!plane.destroy_plane || plane.leaving) {
         /** Перемещение самолета в зависимости от того, выставлен ли флаг перемещения по оси */
-        for (let key in this.endpoint) {
-          if (this.endpoint[key]) {
-            this.plane.position[key] += 1 * - this.signs[key];
+        for (let key in plane.endpoint) {
+          if (plane.endpoint[key]) {
+            plane.object.position[key] += 1 * - plane.signs[key];
           }
         }
 
-        if (!this.cam_frustum.containsPoint(this.plane.position) && !this.leaving && !this.entering) {
-          this.leaving = true;
+        if (!this.cam_frustum.containsPoint(plane.object.position) && !plane.leaving && !plane.entering) {
+          plane.leaving = true;
 
           setTimeout(() => {
-            this.leaving = false;
-            this.destroy_plane = true;
+            plane.leaving = false;
+            plane.destroy_plane = true;
           }, 3000);
         };
       } else {
-        this.resetPlane();
+        this.resetPlane(plane);
       }
     },
 
     /** Выставляем новую позицию и поворот самолета */
-    resetPlane() {
-      this.entering = true;
+    resetPlane(plane) {
+      plane.entering = true;
 
-      this.signs.x = Math.sign(Math.random() - 0.5);
-      this.signs.y = Math.sign(Math.random() - 0.5);
-      this.signs.z = Math.sign(Math.random() - 0.5);
+      plane.signs.x = Math.sign(Math.random() - 0.5);
+      plane.signs.y = Math.sign(Math.random() - 0.5);
+      plane.signs.z = Math.sign(Math.random() - 0.5);
 
-      this.plane.position.z = 700 + Math.floor(Math.random() * 300);
-      this.plane.position.x = this.signs.x * (1000 - this.plane.position.z) + this.signs.x * 50;
-      this.plane.position.y = Math.random() * (1000 - this.plane.position.z) * this.signs.y;
+      plane.object.position.z = 700 + Math.floor(Math.random() * 300);
+      plane.object.position.x = plane.signs.x * (1000 - plane.object.position.z) + plane.signs.x * 50;
+      plane.object.position.y = Math.random() * (1000 - plane.object.position.z) * plane.signs.y;
 
-      this.endpoint.y = Math.ceil(Math.random() - 0.5);
-      this.endpoint.z = Math.ceil(Math.random() - 0.5);
+      plane.endpoint.x = 1;
+      plane.endpoint.y = Math.ceil(Math.random() - 0.5);
+      plane.endpoint.z = Math.ceil(Math.random() - 0.5);
 
       let view = new THREE.Vector3();
-      view.copy(this.plane.position);
+      view.copy(plane.object.position);
 
-      for (let key in this.endpoint) {
-        if (this.endpoint[key]) {
-          view[key] += 1000 * -this.signs[key];
+      for (let key in plane.endpoint) {
+        if (plane.endpoint[key]) {
+          view[key] += 1000 * -plane.signs[key];
         }
       }
-      this.plane.lookAt(view);
-      this.destroy_plane = false;
+      plane.object.lookAt(view);
+      plane.destroy_plane = false;
 
       setTimeout(() => {
-        this.entering = false;
+        plane.entering = false;
       }, 5000);
+    },
+
+    changePlaneNumber(number) {
+      let current = this.planes.length;
+
+      if (number > current) {
+        for (let i = 0; i < number - current; i++) {
+          this.addPlane();
+        }
+      } else {
+        for (let i = 0; i < current - number; i++) {
+          let target = this.planes[this.planes.length - 1];
+          this.scene.remove(this.scene.getObjectById(target.object.id));
+          this.planes.pop();
+        }
+      }
     },
  
     evolveSmoke() {
@@ -230,10 +309,22 @@ export default {
       this.renderer.render( this.scene, this.camera );
     },
 
+    animate() {
+      this.delta = this.clock.getDelta(); 
+
+      this.planes.forEach(plane => {
+        this.planeBehavior(plane);
+      });
+
+      this.evolveSmoke();
+      this.render()
+
+      requestAnimationFrame(this.animate);
+    },
 
     updateSize() {
-      // this.renderer.setSize( window.innerWidth, window.innerHeight );
-      // this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.renderer.setSize( window.innerWidth, window.innerHeight );
+      this.camera.aspect = window.innerWidth / window.innerHeight;
     },
 
     initMusic() {
@@ -285,12 +376,16 @@ export default {
   opacity: 0.6;
   transform: scale(2);
   transition: all .5s ease;
-  // animation: popin 3s ease infinite alternate;
 }
+</style>
 
-@keyframes popin {
-  // 0%   {transform: scale(1)}
-  // 100% {transform: scale(2.2)}
+<style lang="scss">
+.dg.main {
+  opacity: 0.4;
+  transition: opacity .3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
 }
-
 </style>
