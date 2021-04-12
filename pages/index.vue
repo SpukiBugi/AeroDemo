@@ -19,6 +19,7 @@ export default {
 
   data() {
     return {
+      distance: 500,
       image: "images/back.png",
       image2: "images/smoke.png",
       scene: "",
@@ -60,8 +61,8 @@ export default {
   methods: {
     initThree() {
       this.scene = new THREE.Scene();
-      this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-      this.camera.position.z = 1000;
+      this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 1000);
+      this.camera.position.z = this.distance;
 
       this.renderer = new THREE.WebGLRenderer( { alpha: true } );
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -114,13 +115,26 @@ export default {
       loader.load(this.image, (texture) => {
         this.img_w = texture.image.width;
         this.img_h = texture.image.height;
+        
+        var vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
 
-        let relative_w = this.img_w / window.innerWidth;
-        let relative_h = this.img_h / window.innerHeight;
+        const height = 2 * Math.tan( vFOV / 2 ) * this.distance;
+        const width = height * this.camera.aspect;
+
+        let container = {
+          width: width * window.innerWidth / window.innerHeight,
+          height: height,
+        }
+
+        let relative_w = container.width / this.img_w;
+        let relative_h = container.height / this.img_h;
 
         let cover_ratio = Math.max(relative_w, relative_h);
-        let img_geo_w = this.img_w * cover_ratio;
-        let img_geo_h = this.img_h * cover_ratio;
+
+        let img_geo_h, img_geo_w;
+
+        img_geo_w = this.img_w * cover_ratio;
+        img_geo_h = this.img_h * cover_ratio;
 
         let tex_geo = new THREE.PlaneBufferGeometry(img_geo_w, img_geo_h);
         let tex_mat = new THREE.MeshLambertMaterial({
