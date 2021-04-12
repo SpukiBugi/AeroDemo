@@ -118,16 +118,11 @@ export default {
         
         var vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
 
-        const height = 2 * Math.tan( vFOV / 2 ) * this.distance;
-        const width = height * this.camera.aspect;
+        const visibleHeight = 2 * Math.tan( vFOV / 2 ) * this.distance;
+        const visibleWidth = visibleHeight * this.camera.aspect;
 
-        let container = {
-          width: width * window.innerWidth / window.innerHeight,
-          height: height,
-        }
-
-        let relative_w = container.width / this.img_w;
-        let relative_h = container.height / this.img_h;
+        let relative_w = visibleWidth / this.img_w;
+        let relative_h = visibleHeight / this.img_h;
 
         let cover_ratio = Math.max(relative_w, relative_h);
 
