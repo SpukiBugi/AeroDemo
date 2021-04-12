@@ -57,6 +57,8 @@ export default {
       cubeSineDriver: 0,
 
       audio: "",
+
+      gui: "",
     }
   },
 
@@ -76,6 +78,10 @@ export default {
       this.audio.pause();
       window.removeEventListener("click", this.playMusic);
     }
+
+    if (process.client) {
+      this.gui.destroy();
+    };
   },
 
   methods: {
@@ -117,13 +123,13 @@ export default {
     },
 
     initGUI() {
-      const gui = new dat.GUI();
-      let planesController = gui.add({planes: 1}, 'planes', 1, 10, 1);
+      this.gui = new dat.GUI();
+      let planesController = this.gui.add({planes: 1}, 'planes', 1, 10, 1);
       planesController.onChange((value) => {
         this.changePlaneNumber(value);
       })
 
-      let smokeController = gui.add({blaze_meter: 150}, 'blaze_meter', 1, 420, 1);
+      let smokeController = this.gui.add({blaze_meter: 150}, 'blaze_meter', 1, 420, 1);
       smokeController.onChange((value) => {
         this.changeSmoke(value);
       })
