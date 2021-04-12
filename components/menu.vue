@@ -31,8 +31,8 @@
 
     <div class="links-hider">
       <div class="links">
-        <nuxt-link @click.native="$event.stopPropagation" to="/aero" class="link-text">Aero</nuxt-link>
-        <nuxt-link @click.native="$event.stopPropagation" to="/" class="link-text">Garden</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" to="/aero" class="cursor-pointer link-text">Aero</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" to="/" class="cursor-pointer link-text">Garden</nuxt-link>
       </div>
     </div>
   </div>

@@ -60,6 +60,9 @@ button::-moz-focus-inner,
 }
 
 html {
+  word-spacing: 1px;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
   line-height: 1.2; /* 1 */
   -webkit-text-size-adjust: 100%; /* 2 */
 }
