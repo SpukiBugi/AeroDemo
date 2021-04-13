@@ -1,5 +1,6 @@
 <template>
   <div class="page-wrap">
+    <Loader :page_ready="page_ready" @page-enter="pageEnter" />
     <Menu page_img="images/knk.png" />
     <div class="container" ref="container">
     </div>
@@ -10,15 +11,23 @@
 import * as THREE from 'three';
 
 import Menu from "@/components/menu.vue";
+import Loader from '@/components/Loader';
 
 export default {
-
   components: {
     Menu,
+    Loader,
+  },
+
+  head() {
+    return {
+      title: 'Garden'
+    }
   },
 
   data() {
     return {
+      page_ready: false,
       animationFrame: "",
 
       distance: 500,
@@ -51,10 +60,7 @@ export default {
     this.addLight();
     this.addThunder();
     this.drawRain();
-
-    // Внутри запуск анимации
     this.addTexture();
-
     this.initMusic();
 
     if (process.client) {
@@ -66,8 +72,11 @@ export default {
 
   beforeDestroy() {
     cancelAnimationFrame(this.animationFrame);
-    this.audio.pause();
-    window.removeEventListener("click", this.playMusic);
+    
+    if (this.audio) {
+      this.audio.pause();
+      window.removeEventListener("click", this.playMusic);
+    }
 
     if (process.client) {
       this.gui.destroy();
@@ -161,10 +170,12 @@ export default {
         this.img_mesh.material.opacity = 0.9;
         this.scene.add(this.img_mesh);
 
-        this.$root.$emit('page-ready');
-        // Запуск анимации
-        this.animate();
+        this.page_ready = true;
       });
+    },
+
+    pageEnter() {
+      this.animate();
     },
 
     animate() {

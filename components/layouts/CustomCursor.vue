@@ -111,6 +111,11 @@
 
         methods: {
             detectCursor(event) {
+                if (this.circleX === -100 || this.circleY === -100) {
+                    this.circleX = event.clientX;
+                    this.circleY = event.clientY;
+                }
+
                 this.clientX = event.clientX;
                 this.clientY = event.clientY;
                 let cursor_x = event.clientX;

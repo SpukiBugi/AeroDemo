@@ -1,7 +1,7 @@
 <template>
   <div
     class="loader"
-    :class="{ _ready: page_ready, _entered: entered, ['_color-rev']: color_rev }"
+    :class="[{ _ready: page_ready, _entered: entered }, load_color]"
     @click="enterPage"
   >
     <div class="icon cursor-pointer">
@@ -33,8 +33,15 @@
 <script>
 export default {
   props: {
-    page_ready: Boolean,
-    color_rev: Boolean
+    load_color: {
+      type: String,
+      default: '_blue'
+    },
+
+    page_ready: {
+      type: Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -44,8 +51,12 @@ export default {
   },
 
   methods: {
+
     enterPage() {
+      if (!this.page_ready) return;
+
       this.entered = true;
+      this.$emit('page-enter');
     },
   },
 };
@@ -63,9 +74,9 @@ export default {
   height: 100%;
   background-color: rgb(6, 0, 22);
   z-index: 100;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 
-  &._color-rev {
+  &._green {
     .play {
       fill: #008744;
     }
@@ -125,7 +136,7 @@ export default {
   transform: translate(-50%, -50%);
   opacity: 0;
   fill: #0057e7;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
 }
 
 @keyframes rotate {

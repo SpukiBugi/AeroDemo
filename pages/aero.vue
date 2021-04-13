@@ -1,6 +1,7 @@
 <template>
   <div class="page-wrap">
-    <Menu page_img="images/viper_icon.jpg" />
+    <Loader :page_ready="page_ready" load_color="_green" @page-enter="pageEnter" />
+    <Menu page_img="images/viper_icon.jpg" color='_green' />
     <div class="container" ref="container">
     </div>
   </div>
@@ -11,16 +12,23 @@ import * as THREE from 'three';
 import { GLTFLoader } from '@/assets/js/GLTFLoader.js';
 
 import Menu from "@/components/menu.vue";
-import { Vector3 } from 'three';
+import Loader from '@/components/Loader';
 
 export default {
-
   components: {
     Menu,
+    Loader,
+  },
+
+  head() {
+    return {
+      title: 'Aero'
+    }
   },
 
   data() {
     return {
+      page_ready: false,
       animationFrame: "",
 
       scene: "",
@@ -120,10 +128,10 @@ export default {
       /** Запуск анимации */
       this.$refs.container.appendChild(this.renderer.domElement);
       this.renderer.render( this.scene, this.camera );
-      this.$root.$emit('page-ready');
-      this.animate(); 
 
       this.initMusic();
+
+      this.page_ready = true;
     },
 
     initGUI() {
@@ -319,6 +327,10 @@ export default {
       this.renderer.render( this.scene, this.camera );
     },
 
+    pageEnter() {
+      this.animate();
+    },
+
     animate() {
       this.delta = this.clock.getDelta(); 
 
@@ -339,7 +351,6 @@ export default {
 
     initMusic() {
       this.audio = new Audio('audio/viper.mp3');
-      // this.audio.play();
 
       window.addEventListener("click", this.playMusic);
     },
