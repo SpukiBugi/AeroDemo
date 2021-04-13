@@ -21,7 +21,7 @@ export default {
 
   data() {
     return {
-      pause: false,
+      animationFrame: "",
 
       scene: "",
       camera: "",
@@ -57,6 +57,7 @@ export default {
       cubeSineDriver: 0,
 
       audio: "",
+      pause: false,
 
       gui: "",
     }
@@ -74,6 +75,8 @@ export default {
   },
 
   beforeDestroy() {
+    cancelAnimationFrame(this.animationFrame);
+    
     if (this.audio) {
       this.audio.pause();
       window.removeEventListener("click", this.playMusic);
@@ -326,7 +329,7 @@ export default {
       this.evolveSmoke();
       this.render()
 
-      requestAnimationFrame(this.animate);
+      this.animationFrame = requestAnimationFrame(this.animate);
     },
 
     updateSize() {
