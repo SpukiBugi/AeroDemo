@@ -25,7 +25,6 @@ export default {
 
   watch: {
       $route(to, from) {
-        console.log('route', this.$route.params, to, from);
         if (to.params.loaderColor === 'reverse') {
           this.color_rev = true;
         } else {
