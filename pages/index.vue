@@ -48,13 +48,13 @@ export default {
     // Внутри запуск анимации
     this.addTexture();
 
-    this.initMusic();
+    // this.initMusic();
 
     window.addEventListener("resize", this.updateSize);
   },
 
   beforeDestroy() {
-    this.audio.pause();
+    // this.audio.pause();
     window.removeEventListener("click", this.playMusic);
   },
   

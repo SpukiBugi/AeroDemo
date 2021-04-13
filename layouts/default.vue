@@ -2,13 +2,13 @@
   <div>
     <Loader />
     <CustomCursor />
-    <nuxt />
+    <Nuxt />
   </div>
 </template>
 
 <script>
-import Loader from '@/components/layouts/Loader';
-import CustomCursor from '@/components/layouts/CustomCursor.vue';
+import Loader from '~/components/layouts/Loader';
+import CustomCursor from '~/components/layouts/CustomCursor.vue';
 
 export default {
   components: {
