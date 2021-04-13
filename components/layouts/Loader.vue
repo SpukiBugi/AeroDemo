@@ -1,15 +1,54 @@
 <template>
-  <div class="loader">
-    <div class="icon">
-        <svg class="circular" viewBox="25 25 50 50">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"></circle>
-        </svg>
+  <div
+    class="loader"
+    :class="{ _ready: page_ready, _entered: entered, ['_color-rev']: color_rev }"
+    @click="enterPage"
+  >
+    <div class="icon cursor-pointer">
+      <svg class="circular" viewBox="25 25 50 50">
+        <circle
+          class="path"
+          cx="50"
+          cy="50"
+          r="20"
+          fill="none"
+          stroke-width="1"
+          stroke-miterlimit="10"
+        ></circle>
+      </svg>
+
+      <svg
+        class="play"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 490 490"
+      >
+        <path
+          d="M0.665,0v490l488.669-245L0.665,0z M15.977,24.806L455.183,245L15.977,465.208V24.806z"
+        />
+      </svg>
     </div>
   </div>
 </template>
 
 <script>
-export default {};
+export default {
+  props: {
+    page_ready: Boolean,
+    color_rev: Boolean
+  },
+
+  data() {
+    return {
+      entered: false,
+    };
+  },
+
+  methods: {
+    enterPage() {
+      this.entered = true;
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -24,53 +63,102 @@ export default {};
   height: 100%;
   background-color: rgb(6, 0, 22);
   z-index: 100;
+  transition: all 0.3s ease;
+
+  &._color-rev {
+    .play {
+      fill: #008744;
+    }
+
+    .circular {
+        animation: dash 2s ease-in-out infinite, color 1s ease-in-out infinite alternate-reverse,
+      rotate 2s linear infinite;
+    }
+
+    &._ready {
+      .circular {
+        stroke: #008744;
+      }
+    } 
+  }
+
+  &._ready {
+    .play {
+      opacity: 1;
+    }
+
+    .circular {
+      animation-iteration-count: 1;
+      stroke-dasharray: 125, 200;
+      stroke-dashoffset: 0;
+      stroke: #0057e7;
+    }
+  }
+
+  &._entered {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .icon {
+  position: relative;
   width: 100px;
   height: 100px;
 }
 
 .circular {
-    stroke-dasharray: 1, 200;
-    stroke-dashoffset: 0;
-    animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite, rotate 2s linear infinite;
-    stroke-linecap: round;
+  stroke-dasharray: 125, 200;
+  stroke-dashoffset: 0;
+  animation: dash 2s ease-in-out infinite, color 1s ease-in-out infinite alternate,
+    rotate 2s linear infinite;
+  stroke-linecap: round;
+  transition: all 0.3s ease;
+}
+
+.play {
+  position: absolute;
+  top: 50%;
+  left: 53%;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  fill: #0057e7;
+  transition: all 0.3s ease;
 }
 
 @keyframes rotate {
-    100% {
-        transform: rotate(360deg);
-    }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes dash {
-    0% {
-        stroke-dasharray: 1, 200;
-        stroke-dashoffset: 0;
-    }
-    50% {
-        stroke-dasharray: 89, 200;
-        stroke-dashoffset: -35;
-    }
-    100% {
-        stroke-dasharray: 89, 200;
-        stroke-dashoffset: -124;
-    }
+  0% {
+    stroke-dasharray: 125, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124;
+  }
+  50.1% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 125, 200;
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes color {
-    100%, 0% {
-        stroke: #d62d20;
-    }
-    40% {
-        stroke: #0057e7;
-    }
-    66% {
-        stroke: #008744;
-    }
-    80%, 90% {
-        stroke: #ffa700;
-    }
+  0% {
+    stroke: #0057e7;
+  }
+  100% {
+    stroke: #008744;
+  }
 }
 </style>

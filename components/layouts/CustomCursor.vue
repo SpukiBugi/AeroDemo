@@ -1,30 +1,41 @@
 <template>
-    <div :class="['custom-cursor', classes]"
-         :style="positionStyle">
-        <div class="custom-cursor__dot"></div>
+    <div>
+        <div :class="['custom-cursor', classes]"
+            :style="positionStyle">
+            <div class="custom-cursor__circle"></div>
 
-        <transition name="fade">
-            <div v-if="isHScroll || isVScroll"
-                 :class="isHScroll ? 'custom-cursor__arrows--horizontal' : ''"
-                 class="custom-cursor__arrows">
-                <IconCursorArrow />
-                <IconCursorArrow />
-            </div>
-        </transition>
+            <transition name="fade">
+                <div v-if="isHScroll || isVScroll"
+                    :class="isHScroll ? 'custom-cursor__arrows--horizontal' : ''"
+                    class="custom-cursor__arrows">
+                    <IconCursorArrow />
+                    <IconCursorArrow />
+                </div>
+            </transition>
 
-        <transition name="fade">
-            <div v-if="isLeft || isRight"
-                 class="custom-cursor__arrow">
-                <IconArrow />
-            </div>
-        </transition>
+            <transition name="fade">
+                <div v-if="isLeft || isRight"
+                    class="custom-cursor__arrow">
+                    <IconArrow />
+                </div>
+            </transition>
 
-        <transition name="fade">
-            <div v-if="isLeft || isRight"
-                 class="custom-cursor__arrow">
-                <IconArrow />
-            </div>
-        </transition>
+            <transition name="fade">
+                <div v-if="isLeft || isRight"
+                    class="custom-cursor__arrow">
+                    <IconArrow />
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div v-if="isResize"
+                    class="custom-cursor__arrow">
+                    <IconResize />
+                </div>
+            </transition>
+        </div>
+        
+        <div class="custom-cursor__dot" :style="dotStyle"></div>
     </div>
 </template>
 
@@ -42,9 +53,12 @@
             return {
                 clientX: -100,
                 clientY: -100,
+                circleX: -100,
+                circleY: -100,
                 isTicking: false,
                 isCursorVisible: true,
                 isHovered: false,
+                isResize: false,
                 isVScroll: false,
                 isHScroll: false,
                 isLeft: false,
@@ -52,6 +66,7 @@
                 isCompact: false,
 
                 hoverElements: [],
+                resizeElements: [],
                 vScrollElements: [],
                 clickedElements: [],
                 galleryElements: [],
@@ -68,53 +83,73 @@
                     'is-left': this.isLeft,
                     'is-right': this.isRight,
                     'is-compact': this.isCompact,
+                    'is-resize': this.isResize,
                 };
             },
 
             positionStyle() {
+                return `transform: translate3d(${this.circleX}px, ${this.circleY}px, 0)`;
+            },
+
+            dotStyle() {
                 return `transform: translate3d(${this.clientX}px, ${this.clientY}px, 0)`;
             },
         },
 
         mounted() {
-            document.addEventListener('mousemove', this.onCursorMove);
+            document.addEventListener('mousemove', this.detectCursor);
             document.addEventListener('mouseleave', this.onCursorLeave);
             document.addEventListener('mouseenter', this.onCursorEnter);
             this.initHovers();
         },
 
         beforeDestroy() {
-            document.removeEventListener('mousemove', this.onCursorMove);
+            document.removeEventListener('mousemove', this.detectCursor);
             document.removeEventListener('mouseleave', this.onCursorLeave);
             document.removeEventListener('mouseenter', this.onCursorEnter);
         },
 
         methods: {
-
-            /** Отслеживание курсора */
             detectCursor(event) {
+                this.clientX = event.clientX;
+                this.clientY = event.clientY;
                 let cursor_x = event.clientX;
                 let cursor_y = event.clientY;
-                this.interpolate(this.$data, ['clientX', 'clientY'], [cursor_x, cursor_y]);
+                this.interpolate(this.$data, ['circleX', 'circleY'], [cursor_x, cursor_y]);
             },
 
             /** Интерполяция значения позиции мыши
              * @param - Объект содержащий значение
-             * @param - Название значения в объекте
-             * @param - Целевое значение
+             * @param - Названия значений в объекте
+             * @param - Целевые значения
              */
-            interpolate(object, name_object, next_object) {
+            interpolate(object, name_array, target_array) {
                 cancelAnimationFrame(this.animation);
 
                 let progress = 0;
                 /** Регулятор скорости анимации(число особого смысла не имеет) */
-                const speed = 0.00000001;
+                const speed = 0.3;
+
+                const start_array = [];
+
+                name_array.forEach(element => {
+                    start_array.push(object[element]);
+                });
+
+                function easeOutSine(x) {
+                    return Math.sin((x * Math.PI) / 2);
+                }
 
                 const tick = () => {
-                    name_object.forEach((element, key) => {
-                        object[element] += ((next_object[key] - object[element]) * 0.1) * speed;
+                    let step = 0.1 * speed;
+                    let ease = easeOutSine(progress);
+
+                    progress += step;
+
+                    name_array.forEach((element, key) => {
+                        object[element] = start_array[key] + (target_array[key] - start_array[key]) * ease;
                     });
-                    progress += 0.1 * speed;
+
                     if (progress < 1) {
                         this.animation = requestAnimationFrame(tick);
                     }
@@ -177,11 +212,16 @@
                     ...document.querySelectorAll('.cursor-pointer'),
                     ...document.querySelectorAll('.cursor-compact')
                 ];
+                const resizeElements = document.querySelectorAll('.cursor-resize');
                 const clickedElements = document.querySelectorAll('.cursor-clicked');
                 const scrollElements = [...document.querySelectorAll('.cursor-v-scroll'), ...document.querySelectorAll('.cursor-h-scroll')];
                 const galleryElements = [...document.querySelectorAll('.cursor-left'), ...document.querySelectorAll('.cursor-right')];
 
                 hoverElements.forEach(item => {
+                    item.addEventListener('mouseenter', this.handleMouseEnter);
+                    item.addEventListener('mouseleave', this.handleMouseLeave);
+                });
+                resizeElements.forEach(item => {
                     item.addEventListener('mouseenter', this.handleMouseEnter);
                     item.addEventListener('mouseleave', this.handleMouseLeave);
                 });
@@ -198,6 +238,7 @@
                 });
 
                 this.hoverElements = hoverElements;
+                this.resizeElements = resizeElements;
                 this.scrollElements = scrollElements;
                 this.clickedElements = clickedElements;
                 this.galleryElements = galleryElements;
@@ -221,6 +262,10 @@
                         case 'cursor-compact':
                             this.isHovered = false;
                             this.isCompact = true;
+                            break;
+                        case 'cursor-resize':
+                            this.isResize;
+                            this.isHovered = true;
                             break;
                         case 'cursor-left':
                             this.isLeft = true;
@@ -247,6 +292,7 @@
                 this.isLeft = false;
                 this.isRight = false;
                 this.isCompact = false;
+                this.isResize = false;
             },
         },
     };
@@ -281,7 +327,7 @@
         }
 
         &.is-hovered {
-            &:before {
+            .custom-cursor__circle {
                 opacity: 1;
                 transform: translate(-50%, -50%) scale(1.34);
             }
@@ -289,7 +335,7 @@
 
         &.is-v-scroll,
         &.is-h-scroll {
-            &:before {
+            .custom-cursor__circle {
                 opacity: 1;
                 transform: translate(-50%, -50%);
             }
@@ -297,11 +343,11 @@
 
         &.is-left,
         &.is-right {
-            &:before {
+            .custom-cursor__circle {
                 transform: translate(-50%, -50%) scale(1.34);
             }
 
-            .custom-cursor__dot {
+            & > .custom-cursor__dot {
                 opacity: 0;
             }
         }
@@ -319,35 +365,38 @@
         &.is-compact {
             border: 1px solid rgba($dark-accent, 0);
 
-            &:before {
+            .custom-cursor__circle {
                 background-color: transparent;
                 backdrop-filter: blur(0);
             }
         }
-
-        &:before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            transform: translate(-50%, -50%) scale(1);
-            border-radius: 50%;
-            opacity: 0;
-            will-change: transform, opacity;
-            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, background-color 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
-            backdrop-filter: blur(4px);
-            background-color: rgba($dark-accent, 0.2);
-        }
     }
 
     .custom-cursor__dot {
+        position: fixed;
+        top: -3px;
+        left: -3px;
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        z-index: 1;
+        z-index: 101;
         background-color: $dark-accent;
+        pointer-events: none;
+    }
+
+    .custom-cursor__circle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        transform: translate(-50%, -50%) scale(1);
+        border-radius: 50%;
+        opacity: 0;
+        will-change: transform, opacity;
+        transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, background-color 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
+        backdrop-filter: blur(4px);
+        background-color: rgba($dark-accent, 0.2);
     }
 
     .custom-cursor__arrows {

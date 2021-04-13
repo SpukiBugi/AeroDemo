@@ -7,10 +7,6 @@
       <image class="logo" :href="page_img" x="15" y="15" height="100" width="100"/>
 
       <mask id="myMask">
-        <!-- Everything under a white pixel will be visible -->
-        <rect x="0" y="0" width="100%" height="100%" fill="black" />
-
-        <!-- Everything under a black pixel will be invisible -->
         <polygon points="350,0 0,350 350,350" class="triangle-2" fill="white"  />
       </mask>
 
@@ -18,28 +14,19 @@
 
       <g mask="url(#myMask)">
         <rect class="mask-rect" x="0" y="0" width="100%" height="100%" fill="#64a0df" />
-
-        <!-- <g class="links">
-          <a href="/docs/Web/SVG/Element/text">
-            <text class="link-text" x="240" y="300">
-              Garden
-            </text>
-          </a>
-        </g> -->
       </g>
 	  </svg>
 
     <div class="links-hider">
       <div class="links">
-        <nuxt-link @click.native="$event.stopPropagation" to="/aero" class="cursor-pointer link-text">Aero</nuxt-link>
-        <nuxt-link @click.native="$event.stopPropagation" to="/" class="cursor-pointer link-text">Garden</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" :to="{ name: 'aero', params: { loaderColor: 'reverse' }}" class="cursor-pointer link-text">Aero</nuxt-link>
+        <nuxt-link @click.native="$event.stopPropagation" :to="{ name: 'index'}" class="cursor-pointer link-text">Garden</nuxt-link>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { mount } from '@vue/test-utils'
 export default {
   name: 'Menu',
 

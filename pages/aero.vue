@@ -117,6 +117,7 @@ export default {
       /** Запуск анимации */
       this.$refs.container.appendChild(this.renderer.domElement);
       this.renderer.render( this.scene, this.camera );
+      this.$root.$emit('page-ready');
       this.animate(); 
 
       this.initMusic();
@@ -382,16 +383,5 @@ export default {
   opacity: 0.6;
   transform: scale(2);
   transition: all .5s ease;
-}
-</style>
-
-<style lang="scss">
-.dg.main {
-  opacity: 0.4;
-  transition: opacity .3s ease;
-
-  &:hover {
-    opacity: 1;
-  }
 }
 </style>

@@ -28,14 +28,19 @@ export default {
       rain: "",
       rain_geo: "",
       rain_mat: "", 
+      rain_count: 2000,
+      rain_velocities: "",
 
       img_w: Number,
       img_h: Number,
       img_mesh: "",
 
       flash: "",
+      intensity: 30,
 
       audio: "",
+
+      gui: "",
     }
   },
 
@@ -48,14 +53,22 @@ export default {
     // Внутри запуск анимации
     this.addTexture();
 
-    // this.initMusic();
+    this.initMusic();
+
+    if (process.client) {
+      this.initGUI();
+    };
 
     window.addEventListener("resize", this.updateSize);
   },
 
   beforeDestroy() {
-    // this.audio.pause();
+    this.audio.pause();
     window.removeEventListener("click", this.playMusic);
+
+    if (process.client) {
+      this.gui.destroy();
+    };
   },
   
   methods: {
@@ -79,25 +92,28 @@ export default {
     },
 
     addThunder() {
-      this.flash = new THREE.PointLight(0x021031, 30, 10000 ,1.7);
+      this.flash = new THREE.PointLight(0x021031, this.intensity, 10000 ,1.7);
       this.scene.add(this.flash);
     },
 
     drawRain() {
-      let rain_count = 2000;
-      this.rain_geo = new THREE.Geometry();
+      let rain_count = this.rain_count;
+      const positions = [];
+      const velocities = [];
 
       for (let i = 0; i < rain_count; i++) {
-        let rain_drop = new THREE.Vector3(
-          Math.random() * window.innerWidth - window.innerWidth / 2,
-          Math.random() * window.innerHeight - window.innerHeight / 2,
-          Math.random() * 1000 - 500
-        );
-        rain_drop.velocity = {};
-        rain_drop.velocity = 0;
+        positions[i * 3] = Math.random() * window.innerWidth - window.innerWidth / 2;
+        positions[i * 3 + 1] = Math.random() * window.innerHeight - window.innerHeight / 2;
+        positions[i * 3 + 2] = Math.random() * 1000 - 500;
 
-        this.rain_geo.vertices.push(rain_drop);
+        velocities[i * 3] = 0;
+        velocities[i * 3 + 1] = 0;
+        velocities[i * 3 + 2] = 0;
       }
+
+      this.rain_geo = new THREE.BufferGeometry();
+      this.rain_geo.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(positions), 3 ) );
+      this.rain_velocities = velocities;
 
       this.rain_mat = new THREE.PointsMaterial({
         color: 0xaaaaaa,
@@ -141,20 +157,25 @@ export default {
         this.img_mesh.material.opacity = 0.9;
         this.scene.add(this.img_mesh);
 
+        this.$root.$emit('page-ready');
         // Запуск анимации
         this.animate();
       });
     },
 
     animate() {
-      this.rain_geo.vertices.forEach(p => {
-        p.velocity -= 0.001 + Math.random() * 0.001;
-        p.y += p.velocity;
-        if (p.y < -window.innerHeight / 2) {
-          p.y = window.innerHeight / 2 + 10;
-          p.velocity = 0;
+      const positionAttribute = this.rain_geo.getAttribute( 'position' );
+
+      for (let i = 0; i < positionAttribute.array.length / 3; i++) {
+        let y = positionAttribute.array[i * 3 + 1];
+        this.rain_velocities[i * 3 + 1] -= 0.001 + Math.random() * 0.001;
+        y += this.rain_velocities[i * 3 + 1];
+
+        if (y < -window.innerHeight / 2) {
+          y = window.innerHeight / 2 + 10;
+          this.rain_velocities[i * 3 + 1] = 0;
         }
-      });
+      }
       this.rain_geo.verticesNeedUpdate = true;
       this.rain.rotation.y +=0.002;
   
@@ -187,6 +208,57 @@ export default {
     playMusic() {
       this.audio.play();
       window.removeEventListener("click", this.playMusic);
+    },
+
+    initGUI() {
+      this.gui = new dat.GUI();
+      let snowController = this.gui.add({snow: 2000}, 'snow', 1, 10000, 1);
+      snowController.onChange((value) => {
+        this.changeRain(value);
+      })
+
+      let stormController = this.gui.add({storm: 30}, 'storm', 1, 100, 1);
+      stormController.onChange((value) => {
+        this.changeStorm(value);
+      })
+    },
+
+    changeRain(value) {
+      let difference = value - this.rain_count;
+
+      // if (difference < 0) {
+      //   console.log('diff', Math.abs(difference));
+      //   this.rain_geo.vertices.splice(-1, Math.abs(difference));
+      //   console.log('vety', this.rain_geo.vertices);
+      //   this.rain_geo.verticesNeedUpdate = true;
+      //   console.log('vety', this.rain_geo.vertices);
+      // }
+
+      // this.rain_geo = new THREE.Geometry();
+      // for (let i = 0; i < rain_count; i++) {
+      //   let rain_drop = new THREE.Vector3(
+      //     Math.random() * window.innerWidth - window.innerWidth / 2,
+      //     Math.random() * window.innerHeight - window.innerHeight / 2,
+      //     Math.random() * 1000 - 500
+      //   );
+      //   rain_drop.velocity = {};
+      //   rain_drop.velocity = 0;
+
+      //   this.rain_geo.vertices.push(rain_drop);
+      // }
+
+      // this.rain_mat = new THREE.PointsMaterial({
+      //   color: 0xaaaaaa,
+      //   size: 0.1,
+      //   transparent: true
+      // });
+
+      // this.rain = new THREE.Points(this.rain_geo, this.rain_mat);
+      // this.scene.add(this.rain);
+    },
+
+    changeStorm() {
+
     }
   },
 }

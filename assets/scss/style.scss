@@ -7,6 +7,27 @@
 html {
   font-family: $FNT_PRIMARY;
   color: $CLR_TEXT;
+
+  .dg .c .slider {
+    cursor: none;
+  }
+
+  .dg.main .close-button {
+    cursor: none;
+  }
+}
+
+.dg.main {
+  opacity: 0.4;
+  transition: opacity .3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+* {
+  cursor: none;
 }
 
 .content-wrapper {
