@@ -36,10 +36,10 @@ export default {
       scene: "",
       camera: "",
 
-      rain: "",
-      rain_geo: "",
-      rain_mat: "", 
-      rain_count: 1000,
+      rains: [],
+      rain_directions: [],
+      rain_cloud_count: 5,
+      rain_count: 2000,
       max_rain_count: 50000,
 
       img_w: Number,
@@ -110,32 +110,35 @@ export default {
 
     drawRain() {
       const positions = [];
-      const velocities = [];
 
-      for (let i = 0; i < this.max_rain_count; i++) {
-        positions[i * 3] = Math.random() * window.innerWidth - window.innerWidth / 2;
-        positions[i * 3 + 1] = Math.random() * window.innerHeight - window.innerHeight / 2;
-        positions[i * 3 + 2] = Math.random() * 1000 - 500;
+      const initCloud = () => {
+        for (let i = 0; i < this.max_rain_count; i++) {
+          positions[i * 3] = Math.random() * window.innerWidth - window.innerWidth / 2;
+          positions[i * 3 + 1] = Math.random() * window.innerHeight - window.innerHeight / 2;
+          positions[i * 3 + 2] = Math.random() * 1000 - 500;
+        }
 
-        velocities[i * 3] = 0;
-        velocities[i * 3 + 1] = 0;
-        velocities[i * 3 + 2] = 0;
+        let rain_geo = new THREE.BufferGeometry();
+        rain_geo.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(positions), 3 ) );
+        rain_geo.setDrawRange( 0, this.rain_count / this.rain_cloud_count );
+        rain_geo.dynamic = true;
+
+        let rain_mat = new THREE.PointsMaterial({
+          color: 0xaaaaaa,
+          size: 0.1,
+          transparent: true
+        });
+
+        let rain = new THREE.Points(rain_geo, rain_mat);
+
+        this.rains.push(rain);
+        this.scene.add(rain);
       }
 
-      this.rain_geo = new THREE.BufferGeometry();
-      this.rain_geo.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(positions), 3 ) );
-      this.rain_velocities = velocities;
-      this.rain_geo.setDrawRange( 0, this.rain_count );
-      this.rain_geo.dynamic = true;
-
-      this.rain_mat = new THREE.PointsMaterial({
-        color: 0xaaaaaa,
-        size: 0.1,
-        transparent: true
-      });
-
-      this.rain = new THREE.Points(this.rain_geo, this.rain_mat);
-      this.scene.add(this.rain);
+      for (let i = 0; i < this.rain_cloud_count; i++) {
+        initCloud();
+        this.rain_directions.push(Math.sign(0.5 - Math.random()));
+      }
     },
 
     addTexture() {
@@ -179,8 +182,10 @@ export default {
     },
 
     animate() {
-      this.rain.rotation.y +=0.001 + (0.5 - Math.random()) * 0.001;
-      this.rain.rotation.z +=0.001 + (0.5 - Math.random()) * 0.001;
+      this.rains.forEach((element, key) => {
+        element.rotation.x += 0.001 + (0.5 - Math.random()) * 0.001;
+        element.rotation.z += 0.001 +  Math.random() * 0.001;
+      });
   
       if (Math.random() > (1 - 0.01 * this.flash_frequency) || this.flash.power > 100) {
         if (this.flash.power < 100) {
@@ -220,14 +225,16 @@ export default {
         this.changeRain(value);
       })
 
-      let stormController = this.gui.add({storm: this.flash_frequency}, 'storm', 1, 10, 1);
+      let stormController = this.gui.add({storm: this.flash_frequency}, 'storm', 0, 10, 1);
       stormController.onChange((value) => {
         this.changeStorm(value);
       })
     },
 
     changeRain(value) {
-        this.rain.geometry.setDrawRange( 0, value );
+      this.rains.forEach(element => {
+        element.geometry.setDrawRange( 0, value / this.rain_cloud_count );
+      });
     },
 
     changeStorm(value) {
