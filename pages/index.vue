@@ -211,6 +211,7 @@ export default {
 
     initMusic() {
       this.audio = new Audio('audio/garden.m4a');
+      this.audio.loop = true;
 
       window.addEventListener("click", this.playMusic);
     },

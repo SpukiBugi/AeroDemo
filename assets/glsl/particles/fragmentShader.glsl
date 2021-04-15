@@ -1,5 +1,7 @@
 precision highp float;
 uniform sampler2D uTexture;
+uniform float uMusic;
+uniform float uMouse;
 uniform float uTime;
 varying vec2 vPUv;
 varying vec2 vUv;

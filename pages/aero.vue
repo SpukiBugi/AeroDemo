@@ -33,6 +33,7 @@ export default {
 
       scene: "",
       camera: "",
+      renderer: "",
       cam_frustum: "",
       clock: "",
       delta: "",
@@ -353,6 +354,7 @@ export default {
 
     initMusic() {
       this.audio = new Audio('audio/viper.mp3');
+      this.audio.loop = true;
 
       window.addEventListener("click", this.playMusic);
     },

@@ -1,63 +1,20 @@
 <template>
   <div class="page-wrap">
-    <!-- <Loader :page_ready="page_ready" @page-enter="pageEnter" /> -->
+    <Loader :page_ready="page_ready" @page-enter="pageEnter" />
     <Menu page_img="images/knk.png" />
-    <!-- <div class="container" ref="container"></div> -->
-    <div>
-      <button type="button" aria-label="toggle-music">
-        <svg id="pause" xmlns="http://www.w3.org/2000/svg" height="327pt" viewBox="-45 0 327 327" width="327pt">
-          <path
-            d="m158 0h71c4.417969 0 8 3.582031 8 8v311c0 4.417969-3.582031 8-8 8h-71c-4.417969 0-8-3.582031-8-8v-311c0-4.417969 3.582031-8 8-8zm0 0" />
-          <path
-            d="m8 0h71c4.417969 0 8 3.582031 8 8v311c0 4.417969-3.582031 8-8 8h-71c-4.417969 0-8-3.582031-8-8v-311c0-4.417969 3.582031-8 8-8zm0 0" />
-        </svg>
-        <svg id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
-          viewBox="0 0 494.148 494.148" style="enable-background:new 0 0 494.148 494.148;" xml:space="preserve">
-          <path
-            d="M405.284,201.188L130.804,13.28C118.128,4.596,105.356,0,94.74,0C74.216,0,61.52,16.472,61.52,44.044v406.124    c0,27.54,12.68,43.98,33.156,43.98c10.632,0,23.2-4.6,35.904-13.308l274.608-187.904c17.66-12.104,27.44-28.392,27.44-45.884    C432.632,229.572,422.964,213.288,405.284,201.188z" />
-        </svg>
-      </button>
-      <section>
-        <div class="frame full-height">
-          <div class="container" ref="container">
-            <img src="images/back.png" alt="Gandalf" />
-            <button id="allow-music">
-              <span class="loading">Loading...</span>
-              <span class="after-loading"
-                ><svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#FFF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="feather feather-volume-2"
-                >
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                  <path
-                    d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"
-                  />
-                </svg>
-                Enter the experience</span
-              >
-            </button>
-          </div>
-        </div>
-      </section>
-    </div>
+    <div class="container" ref="container" />
   </div>
 </template>
 
 <script>
 import * as THREE from "three";
-
-import Particles from "@/assets/js/classes/Particles";
+import { gsap } from "gsap";
 
 import Menu from "@/components/menu.vue";
 import Loader from "@/components/Loader";
+
+import fragmentShader from '@/assets/glsl/particles/fragmentShader.glsl';
+import vertexShader from '@/assets/glsl/particles/vertexShader.glsl';
 
 export default {
   components: {
@@ -73,19 +30,40 @@ export default {
 
   data() {
     return {
-      image: "images/back.png",
+      image: "images/rin.png",
+      music: "audio/secretG.mp3",
 
-      page_ready: false,
+      music_ready: false,
+      image_ready: false,
       animationFrame: "",
       clock: "",
 
-      webgl: {},
-      particles: "",
-
+      scene: "",
+      camera: "",
       distance: 300,
+      renderer: "",
+      fovHeight: 0,
 
-      gui: "",
+      mouse: {
+        x: 0,
+        y: 0,
+      },
+
+      container: new THREE.Object3D(),
+      mapBass: 0,
+      mapTremble: 0,
+      mapMid: 0,
+      mapLowMid: 0,
+      mapHighMid: 0,
+      waveForm: "",
+      audio: "",
     };
+  },
+
+  computed: {
+    page_ready() {
+      return this.music_ready && this.image_ready;
+    }
   },
 
   mounted() {
@@ -94,52 +72,50 @@ export default {
     this.animate();
     this.resize();
 
-    // if (process.client) {
-    //   this.initGUI();
-    // }
-
-    this.page_ready = true;
-
     window.addEventListener("resize", this.updateSize);
+    window.addEventListener("mousemove", this.updateMouse);
   },
 
   beforeDestroy() {
     cancelAnimationFrame(this.animationFrame);
-    window.removeEventListener("resize", this.updateSize);
+    this.destroy();
 
-    // if (process.client) {
-    //   this.gui.destroy();
-    // }
+    if (this.audio) {
+      this.audio.pause();
+    }
+
+    window.removeEventListener("resize", this.updateSize);
+    window.removeEventListener("mousemove", this.updateMouse);
   },
 
   methods: {
     initThree() {
-      this.webgl.scene = new THREE.Scene();
-      this.webgl.camera = new THREE.PerspectiveCamera(
+      this.scene = new THREE.Scene();
+      this.camera = new THREE.PerspectiveCamera(
         100,
         window.innerWidth / window.innerHeight,
         1,
         1000
       );
-      this.webgl.camera.position.z = this.distance;
+      this.camera.position.z = this.distance;
 
-      this.webgl.renderer = new THREE.WebGLRenderer({
+      this.renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
       });
       this.clock = new THREE.Clock(true);
-      this.webgl.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.$refs.container.appendChild(this.webgl.renderer.domElement);
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.$refs.container.appendChild(this.renderer.domElement);
     },
 
-    // pageEnter() {
-    //   this.animate();
-    // },
+    pageEnter() {
+      this.show();
+      this.animate();
+    },
 
     initParticles() {
-      this.particles = new Particles(this.webgl);
-      this.webgl.scene.add(this.particles.container);
-      this.particles.init(this.image);
+      this.scene.add(this.container);
+      this.init(this.image, this.music);
     },
 
     animate() {
@@ -150,436 +126,279 @@ export default {
     },
 
     draw() {
-      this.webgl.renderer.render(this.webgl.scene, this.webgl.camera);
+      this.renderer.render(this.scene, this.camera);
     },
 
     update() {
+      if (!this.object3D) return;
+
       const delta = this.clock.getDelta();
-      if (this.particles) this.particles.update(delta);
+      this.object3D.material.uniforms.uMouse.x = this.mouse.x,
+      this.object3D.material.uniforms.uMouse.y = this.mouse.y,
+      this.object3D.material.uniforms.uMusic.value = Math.max(1, this.mapMid);
+      this.object3D.material.uniforms.uTime.value += delta;
+    },
+
+    updateMouse(e) {
+      this.mouse.x = e.clientX;
+      this.mouse.y = e.clientY;
     },
 
     updateSize() {
-      this.webgl.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.webgl.camera.aspect = window.innerWidth / window.innerHeight;
-    },
-
-    initGUI() {
-      this.gui = new dat.GUI();
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.camera.aspect = window.innerWidth / window.innerHeight;
     },
 
     resize() {
-      if (!this.webgl.renderer) return;
-      this.webgl.camera.aspect = window.innerWidth / window.innerHeight;
-      this.webgl.camera.updateProjectionMatrix();
+      if (!this.renderer) return;
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
 
-      this.webgl.fovHeight =
+      this.fovHeight =
         2 *
-        Math.tan((this.webgl.camera.fov * Math.PI) / 180 / 2) *
-        this.webgl.camera.position.z;
+        Math.tan((this.camera.fov * Math.PI) / 180 / 2) *
+        this.camera.position.z;
 
-      this.webgl.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-      if (this.interactive) this.interactive.resize();
-      if (this.particles) this.particles.resize();
+      this.resize3D();
+    },
+
+
+    /** Particles */    
+
+    init(image, music) {
+        const loader = new THREE.TextureLoader();
+
+        loader.load(image, (texture) => {
+            this.texture = texture;
+            this.texture.minFilter = THREE.LinearFilter;
+            this.texture.magFilter = THREE.LinearFilter;
+            this.texture.format = THREE.RGBFormat;
+            this.width = texture.image.width;
+            this.height = texture.image.height;
+            this.initPoints(true);
+            this.resize3D();
+            this.hide();
+            this.image_ready = true;
+        });
+
+        const s = (p) => {
+            let fft;
+
+            p.preload = () => {
+                this.audio = p.loadSound(music, () => {
+                  this.music_ready = true;
+                });
+            };
+
+            p.setup = () => {
+                fft = new p5.FFT();
+            };
+
+            p.draw = () => {
+                fft.analyze();
+
+                const bass = fft.getEnergy("bass");
+                const treble = fft.getEnergy("treble");
+                const lowMid = fft.getEnergy("lowMid");
+                const mid = fft.getEnergy("mid");
+                const highMid = fft.getEnergy("highMid");
+                const waveForm = fft.waveform();
+                this.mapBass = p.map(bass, 0, 255, 0, 2.0);
+                this.mapTremble = p.map(treble, 0, 255, 0, 2.0);
+                this.mapLowMid = p.map(lowMid, 0, 255, 0, 2.0);
+                this.mapMid = p.map(mid, 0, 255, 0, 2.0);
+                this.mapHighMid = p.map(highMid, 0, 255, 0, 2.0);
+                this.waveForm = waveForm;
+            };
+        };
+
+        new p5(s);
+    },
+
+    initPoints(discard) {
+        this.numPoints = this.width * this.height;
+        let numVisible = this.numPoints;
+        let threshold = 0;
+        let originalColors;
+
+        if (discard) {
+            // discard pixels darker than threshold #22
+            numVisible = 0;
+            threshold = 34;
+            const img = this.texture.image;
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = this.width;
+            canvas.height = this.height;
+            ctx.scale(1, -1);
+            ctx.drawImage(img, 0, 0, this.width, this.height * -1);
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            originalColors = Float32Array.from(imgData.data);
+
+            for (let i = 0; i < this.numPoints; i++) {
+                if (originalColors[i * 4] > threshold) numVisible++;
+            }
+        }
+
+        const uniforms = {
+            uTime: { value: 0 },
+            uRandom: { value: 1.0 },
+            uDepth: { value: 100.0 },
+            uSize: { value: 1.58 },
+            uTextureSize: { value: new THREE.Vector2(this.width, this.height) },
+            uTexture: { value: this.texture },
+            uMouse: { value: new THREE.Vector2() },
+
+            // This variable was added to use audio values in the vertex shader
+            uMusic: { value: null },
+        };
+        
+        const material = new THREE.RawShaderMaterial({
+            uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            depthTest: false,
+            transparent: true,
+        });
+        const geometry = new THREE.InstancedBufferGeometry();
+
+        // positions
+
+        const positions = new THREE.BufferAttribute(new Float32Array(4 * 3), 3);
+        positions.setXYZ(0, -0.5, 0.5, 0.0);
+        positions.setXYZ(1, 0.5, 0.5, 0.0);
+        positions.setXYZ(2, -0.5, -0.5, 0.0);
+        positions.setXYZ(3, 0.5, -0.5, 0.0);
+        geometry.setAttribute("position", positions);
+
+        // uvs
+
+        const uvs = new THREE.BufferAttribute(new Float32Array(4 * 2), 2);
+        uvs.setXYZ(0, 0.0, 0.0);
+        uvs.setXYZ(1, 1.0, 0.0);
+        uvs.setXYZ(2, 0.0, 1.0);
+        uvs.setXYZ(3, 1.0, 1.0);
+        geometry.setAttribute("uv", uvs);
+
+        // index
+
+        geometry.setIndex(
+            new THREE.BufferAttribute(new Uint16Array([0, 2, 1, 2, 3, 1]), 1)
+        );
+        const indices = new Uint16Array(numVisible);
+        const offsets = new Float32Array(numVisible * 3);
+        const angles = new Float32Array(numVisible);
+
+        for (let i = 0, j = 0; i < this.numPoints; i++) {
+            if (discard && originalColors[i * 4] <= threshold) continue;
+
+            offsets[j * 3] = i % this.width;
+            offsets[j * 3 + 1] = Math.floor(i / this.width);
+            indices[j] = i;
+            angles[j] = Math.random() * Math.PI;
+            j++;
+        }
+
+        geometry.setAttribute(
+            "pindex",
+            new THREE.InstancedBufferAttribute(indices, 1, false)
+        );
+
+        geometry.setAttribute(
+            "offset",
+            new THREE.InstancedBufferAttribute(offsets, 3, false)
+        );
+
+        geometry.setAttribute(
+            "angle",
+            new THREE.InstancedBufferAttribute(angles, 1, false)
+        );
+        this.object3D = new THREE.Mesh(geometry, material);
+        this.container.add(this.object3D);
+    },
+
+    show(time = 4.0) {
+        this.audio.loop();
+        // reset
+        gsap.fromTo(
+            this.object3D.material.uniforms.uSize,
+            { value: 0.5 },
+            { value: 1.5, duration: time }
+        );
+        gsap.to(this.object3D.material.uniforms.uRandom, { value: 2.0, duration: time });
+        gsap.fromTo(
+            this.object3D.material.uniforms.uDepth,
+            { value: 40.0 },
+            { value: 4.0, duration: time }
+        );
+    },
+
+    hide(_destroy, time = 0.8) {
+        return new Promise((resolve, reject) => {
+            gsap.to(this.object3D.material.uniforms.uRandom, {
+                value: 5.0,
+                duration: time,
+                onComplete: () => {
+                    if (_destroy) this.destroy();
+                    resolve();
+                },
+            });
+            gsap.to(this.object3D.material.uniforms.uDepth, {
+                value: -20.0,
+                ease: "power3.in",
+                duration: time,
+            });
+            gsap.to(this.object3D.material.uniforms.uSize, {
+                duration: time * 0.8,
+                value: 0.0,
+            });
+        });
+    },
+
+    destroy() {
+        if (!this.object3D) return;
+
+        this.object3D.parent.remove(this.object3D);
+        this.object3D.geometry.dispose();
+        this.object3D.material.dispose();
+        this.object3D = null;
+    },
+    
+    resize3D() {
+        if (!this.object3D) return;
+
+        const scale = this.fovHeight / this.height;
+        this.object3D.scale.set(scale, scale, 1);
     }
   },
 };
 </script>
 
 <style lang='scss' scoped>
-// .container {
-//   margin: 0 auto;
-//   min-height: 100vh;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   text-align: center;
-// }
+.container {
+  margin: 0 auto;
+  min-height: 100vh;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: black;
+  // background-image: url('/images/rin.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 </style>
 
 <style lang="scss">
-body {
-  background-color: #000;
-  margin: 0;
-}
-
-.full-height {
-  min-height: 100vh;
-}
-
-.hide-bg {
-  background-color: black;
-}
-
-:root {
-  --mapBass: 0;
-  --mapTremble: 0;
-  --mapLowMid: 0;
-  --mapMid: 0;
-  --mapHighMid: 0;
-}
-
-[aria-label="toggle-music"] {
-  -webkit-appearance: none;
-  background-color: transparent;
-  border: 0;
-  width: 3rem;
-  height: 3rem;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9;
-  padding: 1rem;
-}
-
-[aria-label="toggle-music"] svg {
-  width: 1rem;
-  height: 1rem;
-  fill: white;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-#play {
-  opacity: 0;
-  visibility: hidden;
-}
-.frame {
-  width: 100%;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: -1;
-}
-
-.frame .container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-/* @media (max-width: 48rem) {
-	.frame .container canvas {
-		transform: scale(0.75);
-	}
-} */
-
-.container img {
-    position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 100%;
-  width: auto;
-}
-
-#allow-music span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.25rem;
-  white-space: nowrap;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#allow-music span svg {
-  margin-right: 0.5rem;
-}
-#allow-music:hover,
-#allow-music:focus {
-  background-color: #2c0063;
-}
-#allow-music {
-  -webkit-appearance: none;
-  background: none;
-  background-color: #6800ed;
-  border: 0;
-  color: white;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  overflow: visible;
-  width: 13rem;
-  height: 4rem;
-  margin-top: 1rem;
-  transition: all 150ms ease-out;
-}
-
-#defaultCanvas0,
+.p5Canvas,
 #p5_loading {
-  display: none;
-}
-
-.enabled-after-click {
-  min-height: 100vh;
-}
-
-.content__wrapper {
-  padding: 5%;
-}
-
-.full-height.black {
-  min-height: 100vh;
-  background-color: rgba(0, 0, 0, 1);
-}
-.full-height.white {
-  min-height: 100vh;
-  background-color: rgba(255, 255, 255, 1);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  transition: all 300ms ease-in-out;
-}
-::-webkit-scrollbar-button {
-  width: 0;
-  height: 0;
-  transition: all 300ms ease-in-out;
-}
-::-webkit-scrollbar-thumb {
-  background: rgb(
-    calc(var(--mapLowMid) * 55),
-    calc(var(--mapTremble) * 66),
-    calc(var(--mapBass) * 125)
-  );
-  border: 0 none #ffffff;
-  border-radius: 0;
-  transition: all 300ms ease-in-out;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #6800ed;
-}
-::-webkit-scrollbar-thumb:active {
-  background: #000000;
-}
-::-webkit-scrollbar-track {
-  background: #222;
-  border-radius: 0;
-  transition: all 300ms ease-in-out;
-}
-::-webkit-scrollbar-track:hover {
-  background: #666666;
-}
-::-webkit-scrollbar-track:active {
-  background: #333333;
-}
-::-webkit-scrollbar-corner {
-  background: transparent;
-  transition: all 300ms ease-in-out;
-}
-
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-main,
-nav,
-section,
-summary {
-  display: block;
-}
-audio,
-canvas,
-video {
-  display: inline-block;
-}
-audio:not([controls]) {
-  display: none;
-  height: 0;
-}
-[hidden] {
-  display: none;
-}
-html {
-  font-family: "Bebas Neue", sans-serif;
-  -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-}
-body {
-  margin: 0;
-}
-a:active,
-a:hover,
-a:focus {
-  outline: 0;
-}
-h1 {
-  font-size: 2em;
-  margin: 0.67em 0;
-}
-abbr[title] {
-  border-bottom: 1px dotted;
-}
-b,
-strong {
-  font-weight: bold;
-}
-dfn {
-  font-style: italic;
-}
-hr {
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  height: 0;
-}
-mark {
-  background: #ff0;
-  color: #000;
-}
-code,
-kbd,
-pre,
-samp {
-  font-family: monospace, serif;
-  font-size: 1em;
-}
-pre {
-  white-space: pre-wrap;
-}
-q {
-  quotes: "\201C""\201D""\2018""\2019";
-}
-small {
-  font-size: 80%;
-}
-sub,
-sup {
-  font-size: 75%;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
-}
-sup {
-  top: -0.5em;
-}
-sub {
-  bottom: -0.25em;
-}
-img {
-  border: 0;
-}
-svg:not(:root) {
-  overflow: hidden;
-}
-figure {
-  margin: 0;
-}
-fieldset {
-  border: 1px solid #c0c0c0;
-  margin: 0 2px;
-  padding: 0.35em 0.625em 0.75em;
-}
-legend {
-  border: 0;
-  padding: 0;
-}
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-  font-size: 100%;
-  margin: 0;
-}
-button,
-input {
-  line-height: normal;
-}
-button,
-select {
-  text-transform: none;
-}
-button,
-html input[type="button"],
-input[type="reset"],
-input[type="submit"] {
-  -webkit-appearance: button;
-  cursor: pointer;
-}
-button[disabled],
-html input[disabled] {
-  cursor: default;
-}
-input[type="checkbox"],
-input[type="radio"] {
-  box-sizing: border-box;
-  padding: 0;
-}
-input[type="search"] {
-  -webkit-appearance: textfield;
-  -moz-box-sizing: content-box;
-  -webkit-box-sizing: content-box;
-  box-sizing: content-box;
-}
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-button::-moz-focus-inner,
-input::-moz-focus-inner {
-  border: 0;
-  padding: 0;
-}
-textarea {
-  overflow: auto;
-  vertical-align: top;
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-*,
-*::after,
-*::before {
-  box-sizing: border-box;
-}
-
-:root {
-  font-size: 16px;
-}
-
-body {
-  --color-text: #fff;
-  --color-bg: #0e0e0f;
-  --color-link: #ee9a00;
-  --color-link-hover: #8e5c00;
-  color: var(--color-text);
-  background-color: var(--color-bg);
-  font-family: "Bebas Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  text-decoration: none;
-  color: var(--color-link);
-  outline: none;
-  transition: all 150ms ease-out;
-  -webkit-tap-highlight-color: transparent;
-}
-
-a:hover,
-a:focus {
-  color: var(--color-link-hover);
-  outline: none;
-}
-
-button:focus {
-  outline: 0;
-  -webkit-tap-highlight-color: transparent;
+  position: absolute;
+  top: -10000px;
+  left: -10000px;
 }
 </style>

@@ -3,18 +3,17 @@ attribute float pindex;
 attribute vec3 position;
 attribute vec3 offset;
 attribute vec2 uv;
+uniform vec3 u_mouse;
 attribute float angle;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
-// Create music variable
-
-uniform float music;
-
+uniform float uMusic;
 uniform float uTime;
 uniform float uRandom;
 uniform float uDepth;
 uniform float uSize;
+uniform float uMouse;
 uniform vec2 uTextureSize;
 uniform sampler2D uTexture;
 uniform sampler2D uTouch;
@@ -44,11 +43,11 @@ void main() {
 
     vec3 displaced = offset;
 
-    // randomise and utilize music variable
+    // randomise and utilize uMusic variable
 
-    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (music * 0.2);
-    float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, music * 0.1)));
-    displaced.z += rndz * (random(pindex) * uDepth) * (music * 6.0);
+    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (uMusic * uMusic * uMusic * 0.2);
+    float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, uMusic * 0.1)));
+    displaced.z += rndz * (random(pindex) * uDepth) * (uMusic * uMusic * uMusic * 6.0);
 
     // center
 
@@ -63,7 +62,7 @@ void main() {
 
     // particle size
 
-    float psize = (snoise(vec2(uTime* music, pindex) * 0.5) + 2.0) * music * 0.5;
+    float psize = (snoise(vec2(uTime* uMusic * uMusic, pindex) * 0.5) + 2.0) * uMusic * uMusic * 0.5;
     psize *= max(grey, 0.2);
     psize *= uSize;
 
