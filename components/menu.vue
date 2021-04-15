@@ -33,17 +33,20 @@
     <div class="links-hider">
       <div class="links">
         <nuxt-link
-          @click.native="$event.stopPropagation"
           :to="{ name: 'aero', params: { loaderColor: 'reverse' } }"
           class="link-text"
           :class="{'cursor-pointer': $route.name !== 'aero', _current: $route.name === 'aero'}"
           >Aero</nuxt-link>
         <nuxt-link
-          @click.native="$event.stopPropagation"
           :to="{ name: 'index' }"
           class="link-text"
           :class="{'cursor-pointer': $route.name !== 'index', _current: $route.name === 'index'}"
           >Garden</nuxt-link>
+        <nuxt-link
+          :to="{ name: 'visualizer' }"
+          class="link-text"
+          :class="{'cursor-pointer': $route.name !== 'visualizer', _current: $route.name === 'visualizer'}"
+          >Visualizer</nuxt-link>
       </div>
     </div>
   </div>
@@ -60,10 +63,6 @@ export default {
       default: '_blue',
     },
   },
-
-  mounted() {
-    console.log('route', this.$route);
-  }
 };
 </script>
 

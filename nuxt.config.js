@@ -20,6 +20,18 @@ export default {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+    ],
+
+    script: [
+      {
+        src: "https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js",
+      },
+      {
+        src: "https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js",
+      },
+      {
+        src: "https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.sound.min.js",
+      },
     ]
   },
   /*
@@ -60,6 +72,13 @@ export default {
     ** You can extend webpack config here
     */
     extend (config, ctx) {
-    }
+      config.module.rules.push({
+        test: /\.(glsl|vs|fs|vert|frag)$/,
+        use: [
+          'raw-loader',
+          'glslify-loader'
+        ]
+      })
+    },
   },
 }

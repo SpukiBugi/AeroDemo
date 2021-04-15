@@ -84,6 +84,8 @@ export default {
 
   beforeDestroy() {
     cancelAnimationFrame(this.animationFrame);
+
+    window.removeEventListener("resize", this.updateSize);
     
     if (this.audio) {
       this.audio.pause();
