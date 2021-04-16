@@ -94,6 +94,10 @@ export default {
   }
 
   &._ready {
+    .icon {
+      pointer-events: all;
+    }
+
     .play {
       opacity: 1;
     }
@@ -116,6 +120,7 @@ export default {
   position: relative;
   width: 100px;
   height: 100px;
+  pointer-events: none;
 }
 
 .circular {

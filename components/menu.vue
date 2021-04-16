@@ -71,6 +71,7 @@ export default {
   position: absolute;
   width: 200px;
   height: 200px;
+  z-index: 1;
 
   &:hover {
     .triangle-1 {
