@@ -4,9 +4,32 @@
     <Menu page_img="images/knk.png" />
     <div class="container" :class="{'_hide-canvas': hideCanvas}" ref="container" />
     <div class="controls">
-      <div class="control-btn" @click="changeAssets('rin')">demo_1</div>
-      <div class="control-btn" @click="changeAssets('garden')">demo_2</div>
-      <div class="control-btn" @click="changeAssets('viper')">demo_3</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('rin')">demo_1</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('garden')">demo_2</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('viper')">demo_3</div>
+      <div class="control-create" ref="create_drop">
+        <div class="control-btn cursor-pointer" @click="openCreate()">
+          Create
+        </div>
+        <div class="create-add" :class="{'_open': create_visible}">
+          <label for="upload-image" class="create-item cursor-pointer add-image" :class="{'_done': input_image}">
+            Image
+            <input id="upload-image" class="input-file" type="file" @change="uploadFile($event, 'input_image')" accept="image/*" />
+            <IconCheck class="upload-check" />
+          </label>
+          <label for="upload-music" class="create-item cursor-pointer add-music" :class="{'_done': input_music}">
+            Music
+            <input id="upload-music" class="input-file" type="file" @change="uploadFile($event, 'input_music')" accept="audio/*" />
+            <IconCheck class="upload-check" />
+          </label>
+          <div class="create-item create-alpha">
+            <p>Alpha:</p>
+            <input id="alpha-threshold" class="cursor-text input-alpha" v-mask="'##?#'" v-model="input_threshold" type="text">
+          </div>
+          
+          <div class="create-item create-finish" :class="{'_active': input_image && input_music}" @click="finishCreate">Finish</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -20,11 +43,13 @@ import Loader from "@/components/Loader";
 
 import fragmentShader from "@/assets/glsl/particles/fragmentShader.glsl";
 import vertexShader from "@/assets/glsl/particles/vertexShader.glsl";
+import IconCheck from '~/components/icons/IconCheck.vue';
 
 export default {
   components: {
     Menu,
     Loader,
+    IconCheck,
   },
 
   head() {
@@ -39,15 +64,23 @@ export default {
         rin: {
           image: "images/rin.png",
           music: "audio/secretG.mp3",
+          threshold: 34,
         },
         garden: {
           image: "images/back.png",
           music: "audio/garden.m4a",
+          threshold: 34,
         },
         viper: {
           image: "images/viper.jpg",
           music: "audio/viper.mp3",
+          threshold: 34,
         },
+        custom: {
+          image: "",
+          music: "",
+          threshold: 34,
+        }
       },
       currentAsset: "rin",
 
@@ -55,6 +88,10 @@ export default {
       image_ready: false,
       need_reinit: false,
       hideCanvas: false,
+      create_visible: false,
+      input_image: "",
+      input_music: "",
+      input_threshold: 34,
       animationFrame: "",
       clock: "",
 
@@ -111,6 +148,7 @@ export default {
 
     window.removeEventListener("resize", this.updateSize);
     window.removeEventListener("mousemove", this.updateMouse);
+    window.removeEventListener('click', this.closeCreate);
   },
 
   methods: {
@@ -202,6 +240,39 @@ export default {
       });
     },
 
+    openCreate() {
+      this.create_visible = true;
+      window.addEventListener('click', this.closeCreate);
+    },
+
+    closeCreate(e) {
+      const dropdown = this.$refs.create_drop;
+      if (!dropdown) return;
+
+      if ((dropdown !== e.target) && !dropdown.contains(e.target)) {
+        this.create_visible = false
+      }
+    },
+
+    uploadFile(e, field) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      reader.addEventListener("load", () => {
+        this[field] = reader.result;
+      }, false);
+
+      reader.readAsDataURL(file);
+    },
+
+    finishCreate() {
+      this.closeCreate({});
+      this.assets.custom.image = this.input_image;
+      this.assets.custom.music = this.input_music;
+      this.assets.custom.threshold = this.input_threshold;
+      this.changeAssets('custom');
+    },
+
     /** Particles */
 
     init(image, music) {
@@ -264,7 +335,7 @@ export default {
       if (discard) {
         // discard pixels darker than threshold #22
         numVisible = 0;
-        threshold = 34;
+        threshold = this.assets[this.currentAsset].threshold;
         const img = this.texture.image;
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -477,6 +548,8 @@ export default {
   position: absolute;
   top: 0;
   right: 20px;
+  display: flex;
+  color: white;
 }
 
 .control-btn {
@@ -485,6 +558,84 @@ export default {
   align-items: center;
   width: 70px;
   padding: 4px 0;
+}
+
+.control-create {
+  position: relative;
+}
+
+.create-add {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  transform-origin: top;
+  transform: scaleY(0);
+  opacity: 0;
+  transition: all .3s ease;
+
+  &._open {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.create-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  padding: 8px 0;
+  color: white;
+  text-align: center;
+  transition: all .3s ease;
+
+  &._done {
+    color: #008200;
+
+    .upload-check {
+      opacity: 1;
+    }
+  }
+}
+
+.input-file {
+  display: none;
+}
+
+.input-alpha {
+  color: white;
+  width: 23px;
+  margin-left: 5px;
+}
+
+.upload-check {
+  position: absolute;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  fill: #008200;
+  stroke: #008200;
+  stroke-width: 4px;
+  opacity: 0;
+  transition: all .3s ease;
+}
+
+.create-alpha {
+  display: flex;
+}
+
+.create-finish {
+  opacity: 0;
+  pointer-events: none;
+  transition: all .3s ease;
+
+  &._active {
+    opacity: 1;
+    pointer-events: all;
+  }
 }
 </style>
 

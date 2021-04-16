@@ -1,52 +1,60 @@
 <template>
-    <div>
-        <div :class="['custom-cursor', classes]"
-            :style="positionStyle">
-            <div class="custom-cursor__circle"></div>
+  <div>
+    <div :class="['custom-cursor', classes]" :style="positionStyle">
+      <div class="custom-cursor__circle"></div>
 
-            <transition name="fade">
-                <div v-if="isHScroll || isVScroll"
-                    :class="isHScroll ? 'custom-cursor__arrows--horizontal' : ''"
-                    class="custom-cursor__arrows">
-                    <IconCursorArrow />
-                    <IconCursorArrow />
-                </div>
-            </transition>
-
-            <transition name="fade">
-                <div v-if="isLeft || isRight"
-                    class="custom-cursor__arrow">
-                    <IconArrow />
-                </div>
-            </transition>
-
-            <transition name="fade">
-                <div v-if="isLeft || isRight"
-                    class="custom-cursor__arrow">
-                    <IconArrow />
-                </div>
-            </transition>
-
-            <transition name="fade">
-                <div v-if="isResize"
-                    class="custom-cursor__arrow">
-                    <IconResize />
-                </div>
-            </transition>
+      <transition name="fade">
+        <div
+          v-if="isHScroll || isVScroll"
+          :class="isHScroll ? 'custom-cursor__arrows--horizontal' : ''"
+          class="custom-cursor__arrows"
+        >
+          <IconCursorArrow />
+          <IconCursorArrow />
         </div>
-        
-        <div class="custom-cursor__dot" :style="dotStyle"></div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="isLeft || isRight" class="custom-cursor__arrow">
+          <IconArrow />
+        </div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="isLeft || isRight" class="custom-cursor__arrow">
+          <IconArrow />
+        </div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="isResize" class="custom-cursor__arrow">
+          <IconResize />
+        </div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="isText" class="custom-cursor__arrow">
+          <IconText />
+        </div>
+      </transition>
     </div>
+
+    <div class="custom-cursor__dot" :style="dotStyle"></div>
+  </div>
 </template>
 
 <script>
     import IconCursorArrow from '../icons/IconCursorArrow';
     import IconArrow from '../icons/IconArrow';
+    import IconResize from '../icons/IconResize';
+    import IconText from '../icons/IconText.vue';
 
     export default {
         components: {
             IconArrow,
             IconCursorArrow,
+            IconResize,
+            IconText
         },
 
         data() {
@@ -59,6 +67,7 @@
                 isCursorVisible: true,
                 isHovered: false,
                 isResize: false,
+                isText: false,
                 isVScroll: false,
                 isHScroll: false,
                 isLeft: false,
@@ -84,6 +93,7 @@
                     'is-right': this.isRight,
                     'is-compact': this.isCompact,
                     'is-resize': this.isResize,
+                    'is-text': this.isText,
                 };
             },
 
@@ -215,18 +225,15 @@
             addListeners() {
                 const hoverElements = [
                     ...document.querySelectorAll('.cursor-pointer'),
-                    ...document.querySelectorAll('.cursor-compact')
+                    ...document.querySelectorAll('.cursor-compact'),
+                    ...document.querySelectorAll('.cursor-resize'),
+                    ...document.querySelectorAll('.cursor-text')
                 ];
-                const resizeElements = document.querySelectorAll('.cursor-resize');
                 const clickedElements = document.querySelectorAll('.cursor-clicked');
                 const scrollElements = [...document.querySelectorAll('.cursor-v-scroll'), ...document.querySelectorAll('.cursor-h-scroll')];
                 const galleryElements = [...document.querySelectorAll('.cursor-left'), ...document.querySelectorAll('.cursor-right')];
 
                 hoverElements.forEach(item => {
-                    item.addEventListener('mouseenter', this.handleMouseEnter);
-                    item.addEventListener('mouseleave', this.handleMouseLeave);
-                });
-                resizeElements.forEach(item => {
                     item.addEventListener('mouseenter', this.handleMouseEnter);
                     item.addEventListener('mouseleave', this.handleMouseLeave);
                 });
@@ -243,7 +250,6 @@
                 });
 
                 this.hoverElements = hoverElements;
-                this.resizeElements = resizeElements;
                 this.scrollElements = scrollElements;
                 this.clickedElements = clickedElements;
                 this.galleryElements = galleryElements;
@@ -269,7 +275,11 @@
                             this.isCompact = true;
                             break;
                         case 'cursor-resize':
-                            this.isResize;
+                            this.isResize = true;
+                            this.isHovered = true;
+                            break;
+                        case 'cursor-text':
+                            this.isText = true;
                             this.isHovered = true;
                             break;
                         case 'cursor-left':
@@ -298,146 +308,155 @@
                 this.isRight = false;
                 this.isCompact = false;
                 this.isResize = false;
+                this.isText = false;
             },
         },
     };
 </script>
 
 <style lang="scss">
-    .custom-cursor {
-        position: fixed;
-        top: -22px;
-        left: -22px;
-        z-index: 101;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 44px;
-        height: 44px;
-        opacity: 0;
-        border-radius: 50%;
-        cursor: none;
-        pointer-events: none;
-        border: 1px solid rgba($dark-accent, 0.2);
-        transition: border 0.4s ease-in-out;
+.custom-cursor {
+  position: fixed;
+  top: -22px;
+  left: -22px;
+  z-index: 101;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  border-radius: 50%;
+  cursor: none;
+  pointer-events: none;
+  border: 1px solid rgba($dark-accent, 0.2);
+  transition: border 0.4s ease-in-out;
 
-        &.is-hovered,
-        &.is-v-scroll,
-        &.is-h-scroll {
-            border-color: transparent;
-        }
+  &.is-hovered,
+  &.is-v-scroll,
+  &.is-h-scroll {
+    border-color: transparent;
+  }
 
-        &.is-visible {
-            opacity: 1;
-        }
+  &.is-visible {
+    opacity: 1;
+  }
 
-        &.is-hovered {
-            .custom-cursor__circle {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.34);
-            }
-        }
+  &.is-hovered {
+    .custom-cursor__circle {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.34);
+    }
+  }
 
-        &.is-v-scroll,
-        &.is-h-scroll {
-            .custom-cursor__circle {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
+  &.is-v-scroll,
+  &.is-h-scroll {
+    .custom-cursor__circle {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
 
-        &.is-left,
-        &.is-right {
-            .custom-cursor__circle {
-                transform: translate(-50%, -50%) scale(1.34);
-            }
-
-            & > .custom-cursor__dot {
-                opacity: 0;
-            }
-        }
-
-        &.is-left {
-            //
-        }
-
-        &.is-right {
-            .custom-cursor__arrow {
-                transform: rotate(180deg);
-            }
-        }
-
-        &.is-compact {
-            border: 1px solid rgba($dark-accent, 0);
-
-            .custom-cursor__circle {
-                background-color: transparent;
-                backdrop-filter: blur(0);
-            }
-        }
+  &.is-left,
+  &.is-right {
+    .custom-cursor__circle {
+      transform: translate(-50%, -50%) scale(1.34);
     }
 
-    .custom-cursor__dot {
-        position: fixed;
-        top: -3px;
-        left: -3px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        z-index: 101;
-        background-color: $dark-accent;
-        pointer-events: none;
+    & + .custom-cursor__dot {
+      opacity: 0;
     }
+  }
+
+  &.is-left {
+    //
+  }
+
+  &.is-right {
+    .custom-cursor__arrow {
+      transform: rotate(180deg);
+    }
+  }
+
+  &.is-compact {
+    border: 1px solid rgba($dark-accent, 0);
 
     .custom-cursor__circle {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100%;
-        height: 100%;
-        transform: translate(-50%, -50%) scale(1);
-        border-radius: 50%;
-        opacity: 0;
-        will-change: transform, opacity;
-        transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, background-color 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
-        backdrop-filter: blur(4px);
-        background-color: rgba($dark-accent, 0.2);
+      background-color: transparent;
+      backdrop-filter: blur(0);
+    }
+  }
+
+  &.is-resize,
+  &.is-text {
+    & + .custom-cursor__dot {
+      opacity: 0;
+    }
+  }
+}
+
+.custom-cursor__dot {
+  position: fixed;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  z-index: 101;
+  background-color: $dark-accent;
+  pointer-events: none;
+}
+
+.custom-cursor__circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 50%;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out,
+    background-color 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
+  backdrop-filter: blur(4px);
+  background-color: rgba($dark-accent, 0.2);
+}
+
+.custom-cursor__arrows {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 68px;
+
+  & svg {
+    width: 8px;
+    height: 5px;
+
+    &:first-child {
+      transform: rotate(180deg);
+      transform-origin: center;
     }
 
-    .custom-cursor__arrows {
-        position: absolute;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 68px;
+    fill: white;
+  }
 
-        & svg {
-            width: 8px;
-            height: 5px;
+  &--horizontal {
+    transform: rotate(90deg);
+  }
+}
 
-            &:first-child {
-                transform: rotate(180deg);
-                transform-origin: center;
-            }
+.custom-cursor__arrow {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 
-            fill: currentColor;
-        }
-
-        &--horizontal {
-            transform: rotate(90deg);
-        }
-    }
-
-    .custom-cursor__arrow {
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-
-        & svg {
-            fill: currentColor;
-        }
-    }
+  & svg {
+    fill: white;
+  }
+}
 </style>
