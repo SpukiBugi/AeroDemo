@@ -42,12 +42,8 @@ export default {
       camera: "",
       distance: 300,
       renderer: "",
-      fovHeight: 0,
-
-      mouse: {
-        x: 0,
-        y: 0,
-      },
+      scale: 1,
+      backgroundPosition: 'cover',
 
       container: new THREE.Object3D(),
       mapBass: 0,
@@ -133,15 +129,19 @@ export default {
       if (!this.object3D) return;
 
       const delta = this.clock.getDelta();
-      this.object3D.material.uniforms.uMouse.x = this.mouse.x,
-      this.object3D.material.uniforms.uMouse.y = this.mouse.y,
       this.object3D.material.uniforms.uMusic.value = Math.max(1, this.mapMid);
       this.object3D.material.uniforms.uTime.value += delta;
     },
 
     updateMouse(e) {
-      this.mouse.x = e.clientX;
-      this.mouse.y = e.clientY;
+      gsap.to(this.camera.rotation, {
+        x: (0.5 - e.clientY / window.innerHeight) * 0.15,
+        y: (0.5 - e.clientX / window.innerWidth) * 0.15,
+        duration: 2,
+        ease: "power1.easeOut",
+      });
+      // this.camera.rotation.x = (0.5 - e.clientY / window.innerHeight) * 0.1;
+      // this.camera.rotation.y = (0.5 - e.clientX / window.innerWidth) * 0.1;
     },
 
     updateSize() {
@@ -153,11 +153,6 @@ export default {
       if (!this.renderer) return;
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
-
-      this.fovHeight =
-        2 *
-        Math.tan((this.camera.fov * Math.PI) / 180 / 2) *
-        this.camera.position.z;
 
       this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -177,6 +172,7 @@ export default {
             this.texture.format = THREE.RGBFormat;
             this.width = texture.image.width;
             this.height = texture.image.height;
+
             this.initPoints(true);
             this.resize3D();
             this.hide();
@@ -249,7 +245,6 @@ export default {
             uSize: { value: 1.58 },
             uTextureSize: { value: new THREE.Vector2(this.width, this.height) },
             uTexture: { value: this.texture },
-            uMouse: { value: new THREE.Vector2() },
 
             // This variable was added to use audio values in the vertex shader
             uMusic: { value: null },
@@ -367,10 +362,26 @@ export default {
     },
     
     resize3D() {
-        if (!this.object3D) return;
+      if (!this.object3D) return;
 
-        const scale = this.fovHeight / this.height;
-        this.object3D.scale.set(scale, scale, 1);
+      if (this.backgroundPosition === 'contain') {
+        const vFOV = this.camera.fov * Math.PI / 180;
+        const visibleHeight = 2 * Math.tan( vFOV / 2 ) * this.distance;
+        const relative_h = visibleHeight / this.height;
+
+        this.scale = relative_h;
+      } else {
+        const vFOV = this.camera.fov * Math.PI / 180;
+        const visibleHeight = 2 * Math.tan( vFOV / 2 ) * this.distance;
+        const visibleWidth = visibleHeight * this.camera.aspect;
+
+        const relative_w = visibleWidth / this.width;
+        const relative_h = visibleHeight / this.height;
+
+        this.scale = Math.max(relative_w, relative_h);
+      }
+
+      this.object3D.scale.set(this.scale, this.scale, 1);
     }
   },
 };
