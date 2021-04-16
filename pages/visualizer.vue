@@ -5,8 +5,8 @@
     <div class="container" :class="{'_hide-canvas': hideCanvas}" ref="container" />
     <div class="controls">
       <div class="control-btn cursor-pointer" @click="changeAssets('rin')">demo_1</div>
-      <div class="control-btn cursor-pointer" @click="changeAssets('garden')">demo_2</div>
-      <div class="control-btn cursor-pointer" @click="changeAssets('viper')">demo_3</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('mayuri')">demo_2</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('yuki')">demo_3</div>
       <div class="control-create" ref="create_drop">
         <div class="control-btn cursor-pointer" @click="openCreate()">
           Create
@@ -66,15 +66,15 @@ export default {
           music: "audio/secretG.mp3",
           threshold: 34,
         },
-        garden: {
-          image: "images/back.png",
-          music: "audio/garden.m4a",
+        mayuri: {
+          image: "images/mayuri.jpg",
+          music: "audio/chronostatsis.mp3",
           threshold: 34,
         },
-        viper: {
-          image: "images/viper.jpg",
-          music: "audio/viper.mp3",
-          threshold: 34,
+        yuki: {
+          image: "images/yuki.jpg",
+          music: "audio/kuroi.mp3",
+          threshold: 100,
         },
         custom: {
           image: "",
@@ -199,7 +199,7 @@ export default {
       if (!this.object3D) return;
 
       const delta = this.clock.getDelta();
-      this.object3D.material.uniforms.uMusic.value = Math.max(1, this.mapMid);
+      this.object3D.material.uniforms.uMusic.value = this.mapBass;
       this.object3D.material.uniforms.uTime.value += delta;
     },
 
@@ -549,14 +549,18 @@ export default {
   top: 0;
   right: 20px;
   display: flex;
+  padding: 0 4px;
   color: white;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .control-btn {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 70px;
+  width: 85px;
   padding: 4px 0;
 }
 
@@ -586,9 +590,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 70px;
+  width: 85px;
   padding: 8px 0;
   color: white;
+  background-color: rgba(0, 0, 0, 0.4);
   text-align: center;
   transition: all .3s ease;
 

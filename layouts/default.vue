@@ -1,6 +1,8 @@
 <template>
   <div>
-    <CustomCursor />
+    <client-only>
+      <CustomCursor v-if="!isMobile" />
+    </client-only>
     <Nuxt />
   </div>
 </template>
@@ -12,5 +14,11 @@ export default {
   components: {
     CustomCursor,
   },
+
+  computed: {
+    isMobile() {
+      return this.$mq === 'xs' || this.$mq === 'sm'
+    }
+  }
 }
 </script>

@@ -43,9 +43,9 @@ void main() {
 
     // randomise and utilize uMusic variable
 
-    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (uMusic * uMusic * uMusic * 0.2);
+    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (uMusic * uMusic * uMusic * uMusic * uMusic * 0.2);
     float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, uMusic * 0.1)));
-    displaced.z += rndz * (random(pindex) * uDepth) * (uMusic * uMusic * uMusic * 6.0);
+    displaced.z += rndz * (random(pindex) * uDepth) * (uMusic * uMusic * uMusic * uMusic * uMusic * 6.0);
 
     // center
 
@@ -60,7 +60,7 @@ void main() {
 
     // particle size
 
-    float psize = (snoise(vec2(uTime* uMusic * uMusic, pindex) * 0.5) + 2.0) * uMusic * uMusic * 0.5;
+    float psize = (snoise(vec2(uTime* uMusic, pindex) * 0.5) + 2.0) * uMusic * 0.5;
     psize *= max(grey, 0.2);
     psize *= uSize;
 
