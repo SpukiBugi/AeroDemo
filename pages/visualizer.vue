@@ -640,7 +640,7 @@ export default {
 
 .upload-check {
   position: absolute;
-  right: 0;
+  right: 10px;
   width: 10px;
   height: 10px;
   fill: #008200;
