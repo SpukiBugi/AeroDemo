@@ -383,7 +383,6 @@
 
     .custom-cursor__circle {
       background-color: transparent;
-      backdrop-filter: blur(0);
     }
   }
 
@@ -418,8 +417,7 @@
   opacity: 0;
   will-change: transform, opacity;
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out,
-    background-color 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
-  backdrop-filter: blur(4px);
+    background-color 0.4s ease-in-out;
   background-color: rgba($dark-accent, 0.2);
 }
 
