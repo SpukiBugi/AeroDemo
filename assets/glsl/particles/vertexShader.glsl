@@ -7,6 +7,7 @@ attribute float angle;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
+uniform float uDisplacement;
 uniform float uMusic;
 uniform float uTime;
 uniform float uRandom;
@@ -43,9 +44,9 @@ void main() {
 
     // randomise and utilize uMusic variable
 
-    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (uMusic * uMusic * uMusic * uMusic * uMusic * 0.2);
+    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (pow(uMusic, uDisplacement) * 0.2);
     float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, uMusic * 0.1)));
-    displaced.z += rndz * (random(pindex) * uDepth) * (uMusic * uMusic * uMusic * uMusic * uMusic * 6.0);
+    displaced.z += rndz * (random(pindex) * uDepth) * (pow(uMusic, uDisplacement) * 6.0);
 
     // center
 

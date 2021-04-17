@@ -1,6 +1,8 @@
 precision highp float;
 uniform sampler2D uTexture;
 uniform float uMusic;
+uniform float uMusicHigh;
+uniform float uMusicLow;
 uniform float uTime;
 varying vec2 vPUv;
 varying vec2 vUv;
@@ -17,8 +19,8 @@ void main() {
 
     // greyscale
 
-    float grey = colA.r * 0.21 + colA.g * 0.71 + colA.b * 0.07;
-    vec4 colB = vec4(grey, grey, grey, 1.0);
+    // float grey = colA.r * 0.21 + colA.g * 0.71 + colA.b * 0.07;
+    // vec4 colB = vec4(grey, grey, grey, 1.0);
 
     // circle
 
@@ -30,17 +32,20 @@ void main() {
 
     // Double the speed
 
-    float wave = sin(uTime * 2.0);
+    // float wave = sin(uTime * 2.0);
 
     // Scale to make the circle bigger so it reaches the far edges
 
-    float circle = (uv.x * uv.x + uv.y * uv.y) * 0.2;
-    vec4 color1 = vec4(0.1, 0.2, 0.8, 1.0); // Red
-    vec4 color2 = vec4(0.2, 0.1, 0.8, 1.0); // Blue
-    color = mix(color1, color2, circle + wave);
+    // float circle = (uv.x * uv.x + uv.y * uv.y) * 0.2;
+    // vec4 color1 = vec4(0.1, 0.2, 0.8, 1.0); // Red
+    // vec4 color2 = vec4(0.2, 0.1, 0.8, 1.0); // Blue
+    // color = mix(color1, color2, circle + wave);
 
     // final color
+    color = colA;
     // color = colB;
+    color.r = color.r + smoothstep(1.2, 2.0, uMusicHigh) * 3.0;
+    color.b = color.b + smoothstep(1.65, 2.0, uMusicLow) * 3.0;;
     color.a = t;
     gl_FragColor = color;
 }

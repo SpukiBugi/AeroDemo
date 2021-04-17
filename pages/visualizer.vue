@@ -7,6 +7,7 @@
       <div class="control-btn cursor-pointer" @click="changeAssets('rin')">demo_1</div>
       <div class="control-btn cursor-pointer" @click="changeAssets('mayuri')">demo_2</div>
       <div class="control-btn cursor-pointer" @click="changeAssets('yuki')">demo_3</div>
+      <div class="control-btn cursor-pointer" @click="changeAssets('sato')">demo_4</div>
       <div class="control-create" ref="create_drop">
         <div class="control-btn cursor-pointer" @click="openCreate()">
           Create
@@ -22,9 +23,13 @@
             <input id="upload-music" class="input-file" type="file" @change="uploadFile($event, 'input_music')" accept="audio/*" />
             <IconCheck class="upload-check" />
           </label>
-          <div class="create-item create-alpha">
+          <div class="create-item create-text">
             <p>Alpha:</p>
-            <input id="alpha-threshold" class="cursor-text input-alpha" v-mask="'##?#'" v-model="input_threshold" type="text">
+            <input id="alpha-threshold" class="cursor-text input-text" v-mask="'##?#'" v-model="input_threshold" type="text">
+          </div>
+          <div class="create-item create-text">
+            <p>Displace:</p>
+            <input id="displacement" class="cursor-text input-text" v-mask="'#?#'" v-model="input_displacement" type="text">
           </div>
           
           <div class="create-item create-finish" :class="{'_active': input_image && input_music}" @click="finishCreate">Finish</div>
@@ -65,21 +70,31 @@ export default {
           image: "images/rin.png",
           music: "audio/secretG.mp3",
           threshold: 34,
+          displacement: 4,
         },
         mayuri: {
           image: "images/mayuri.jpg",
           music: "audio/chronostatsis.mp3",
           threshold: 34,
+          displacement: 1,
         },
         yuki: {
           image: "images/yuki.jpg",
           music: "audio/kuroi.mp3",
           threshold: 100,
+          displacement: 5,
+        },
+        sato: {
+          image: "images/sato.png",
+          music: "audio/shiroi.mp3",
+          threshold: 34,
+          displacement: 2,
         },
         custom: {
           image: "",
           music: "",
           threshold: 34,
+          displacement: 5,
         }
       },
       currentAsset: "rin",
@@ -92,6 +107,7 @@ export default {
       input_image: "",
       input_music: "",
       input_threshold: 34,
+      input_displacement: 5,
       animationFrame: "",
       clock: "",
 
@@ -178,6 +194,7 @@ export default {
 
     initParticles() {
       this.scene.add(this.container);
+      this.displacement = this.assets[this.currentAsset].displacement;
       this.init(
         this.assets[this.currentAsset].image,
         this.assets[this.currentAsset].music
@@ -199,7 +216,9 @@ export default {
       if (!this.object3D) return;
 
       const delta = this.clock.getDelta();
-      this.object3D.material.uniforms.uMusic.value = this.mapBass;
+      this.object3D.material.uniforms.uMusic.value = Math.max(1, this.mapBass);
+      this.object3D.material.uniforms.uMusicHigh.value = Math.max(1, this.mapHighMid);
+      this.object3D.material.uniforms.uMusicLow.value =  Math.max(1, this.mapLowMid);
       this.object3D.material.uniforms.uTime.value += delta;
     },
 
@@ -232,11 +251,9 @@ export default {
       this.music_ready = false;
       this.need_reinit = true;
       this.currentAsset = asset;
+
       this.hide(true).then(() => {
-        this.init(
-          this.assets[this.currentAsset].image,
-          this.assets[this.currentAsset].music
-        );
+        this.init();
       });
     },
 
@@ -270,15 +287,16 @@ export default {
       this.assets.custom.image = this.input_image;
       this.assets.custom.music = this.input_music;
       this.assets.custom.threshold = this.input_threshold;
+      this.assets.custom.displacement = this.input_displacement;
       this.changeAssets('custom');
     },
 
     /** Particles */
 
-    init(image, music) {
+    init() {
       const loader = new THREE.TextureLoader();
 
-      loader.load(image, (texture) => {
+      loader.load(this.assets[this.currentAsset].image, (texture) => {
         this.texture = texture;
         this.texture.minFilter = THREE.LinearFilter;
         this.texture.magFilter = THREE.LinearFilter;
@@ -296,7 +314,7 @@ export default {
         let fft;
 
         p.preload = () => {
-          this.audio = p.loadSound(music, () => {
+          this.audio = p.loadSound(this.assets[this.currentAsset].music, () => {
             this.music_ready = true;
           });
         };
@@ -358,9 +376,12 @@ export default {
         uSize: { value: 0.5 },
         uTextureSize: { value: new THREE.Vector2(this.width, this.height) },
         uTexture: { value: this.texture },
+        uDisplacement: { value: this.assets[this.currentAsset].displacement },
 
         // This variable was added to use audio values in the vertex shader
         uMusic: { value: null },
+        uMusicHigh: { value: null },
+        uMusicLow: { value: null },
       };
 
       const material = new THREE.RawShaderMaterial({
@@ -448,9 +469,6 @@ export default {
     },
 
     hide(_destroy, time = 0.8) {
-      if (this.audio) {
-        this.audio.pause();
-      }
 
       return new Promise((resolve, reject) => {
         gsap.to(this.object3D.material.uniforms.uRandom, {
@@ -458,6 +476,9 @@ export default {
           duration: time,
           onComplete: () => {
             if (_destroy) {
+              if (this.audio) {
+                this.audio.pause();
+              }
               this.hideCanvas = true;
               this.destroy();
             }
@@ -547,13 +568,11 @@ export default {
 .controls {
   position: absolute;
   top: 0;
-  right: 20px;
+  right: 0;
   display: flex;
-  padding: 0 4px;
   color: white;
   background-color: rgba(0, 0, 0, 0.4);
   border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
 }
 
 .control-btn {
@@ -561,11 +580,14 @@ export default {
   justify-content: center;
   align-items: center;
   width: 85px;
-  padding: 4px 0;
+  padding: 4px 0 8px;
 }
 
 .control-create {
   position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100px;
 }
 
 .create-add {
@@ -590,7 +612,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 85px;
+  width: 100px;
   padding: 8px 0;
   color: white;
   background-color: rgba(0, 0, 0, 0.4);
@@ -610,7 +632,7 @@ export default {
   display: none;
 }
 
-.input-alpha {
+.input-text {
   color: white;
   width: 23px;
   margin-left: 5px;
@@ -628,7 +650,7 @@ export default {
   transition: all .3s ease;
 }
 
-.create-alpha {
+.create-text {
   display: flex;
 }
 
