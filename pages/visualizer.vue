@@ -247,6 +247,8 @@ export default {
     },
 
     changeAssets(asset) {
+      if (!this.page_ready) return;
+
       this.image_ready = false;
       this.music_ready = false;
       this.need_reinit = true;
