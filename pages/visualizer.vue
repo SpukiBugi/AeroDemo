@@ -156,6 +156,12 @@ export default {
     if (this.$route.query.demo) {
       this.currentAsset = this.$route.query.demo;
     }
+
+    if (this.$route.query.image && this.$route.query.music) {
+      this.assets.custom.image = this.$route.query.image;
+      this.assets.custom.music = this.$route.query.music;
+      this.currentAsset = 'custom';
+    }
   },
 
   mounted() {
