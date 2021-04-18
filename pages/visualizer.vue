@@ -1,7 +1,7 @@
 <template>
   <div class="page-wrap">
     <Loader :page_ready="page_ready" @page-enter="pageEnter" />
-    <Menu page_img="images/knk.png" />
+    <Menu page_img="/images/knk.png" />
     <div class="container" :class="{'_hide-canvas': hideCanvas}" ref="container" />
     <div class="controls">
       <div class="control-btn cursor-pointer" @click="changeAssets('rin')">demo_1</div>
@@ -24,15 +24,18 @@
             <IconCheck class="upload-check" />
           </label>
           <div class="create-item create-text">
-            <p>Alpha:</p>
-            <input id="alpha-threshold" class="cursor-text input-text" v-mask="'##?#'" v-model="input_threshold" type="text">
-          </div>
-          <div class="create-item create-text">
             <p>Displace:</p>
             <input id="displacement" class="cursor-text input-text" v-mask="'#?#'" v-model="input_displacement" type="text">
           </div>
+          <div class="create-item create-switch">
+            <p>Position:</p>
+            <div class="switch-wrap">
+              <div class="switch-item cursor-pointer" :class="{'_active': backgroundPosition === 'cover'}" @click="backgroundPosition = 'cover'; resize()">Cover</div>
+              <div class="switch-item cursor-pointer" :class="{'_active': backgroundPosition === 'contain'}" @click="backgroundPosition = 'contain'; resize()">Contain</div>
+            </div>
+          </div>
           
-          <div class="create-item create-finish" :class="{'_active': input_image && input_music}" @click="finishCreate">Finish</div>
+          <div class="create-item create-finish cursor-pointer" :class="{'_active': input_image && input_music}" @click="finishCreate">Finish</div>
         </div>
       </div>
     </div>
@@ -67,28 +70,34 @@ export default {
     return {
       assets: {
         rin: {
-          image: "images/rin.png",
-          music: "audio/secretG.mp3",
+          image: "/images/rin.png",
+          music: "/audio/secretG.mp3",
           threshold: 34,
           displacement: 4,
         },
         mayuri: {
-          image: "images/mayuri.jpg",
-          music: "audio/chronostatsis.mp3",
+          image: "/images/mayuri.jpg",
+          music: "/audio/chronostatsis.mp3",
           threshold: 34,
           displacement: 1,
         },
         yuki: {
-          image: "images/yuki.jpg",
-          music: "audio/kuroi.mp3",
+          image: "/images/yuki.jpg",
+          music: "/audio/kuroi.mp3",
           threshold: 100,
           displacement: 5,
         },
         sato: {
-          image: "images/sato.png",
-          music: "audio/shiroi.mp3",
+          image: "/images/sato.png",
+          music: "/audio/shiroi.mp3",
           threshold: 34,
           displacement: 2,
+        },
+        peko: {
+          image: "/images/peko.png",
+          music: "/audio/peko.mp3",
+          threshold: 34,
+          displacement: 3,
         },
         custom: {
           image: "",
@@ -106,8 +115,8 @@ export default {
       create_visible: false,
       input_image: "",
       input_music: "",
-      input_threshold: 34,
       input_displacement: 5,
+      backgroundPosition: "contain",
       animationFrame: "",
       clock: "",
 
@@ -116,7 +125,6 @@ export default {
       distance: 300,
       renderer: "",
       scale: 1,
-      backgroundPosition: "cover",
 
       container: new THREE.Object3D(),
       mapBass: 0,
@@ -141,6 +149,12 @@ export default {
         this.show();
         this.need_reinit = false;
       }
+    }
+  },
+
+  created() {
+    if (this.$route.query.demo) {
+      this.currentAsset = this.$route.query.demo;
     }
   },
 
@@ -288,7 +302,6 @@ export default {
       this.closeCreate({});
       this.assets.custom.image = this.input_image;
       this.assets.custom.music = this.input_music;
-      this.assets.custom.threshold = this.input_threshold;
       this.assets.custom.displacement = this.input_displacement;
       this.changeAssets('custom');
     },
@@ -589,7 +602,7 @@ export default {
   position: relative;
   display: flex;
   justify-content: center;
-  width: 100px;
+  width: 110px;
 }
 
 .create-add {
@@ -614,7 +627,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100px;
+  width: 110px;
   padding: 8px 0;
   color: white;
   background-color: rgba(0, 0, 0, 0.4);
@@ -654,6 +667,32 @@ export default {
 
 .create-text {
   display: flex;
+}
+
+.create-switch {
+  display: flex;
+  flex-direction: column;
+}
+
+.switch-wrap {
+  display: flex;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.switch-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+  padding: 2px 4px;
+  font-size: 14px;
+  transition: all .3s ease;
+
+  &._active {
+    background-color: #2c4968;
+  }
 }
 
 .create-finish {
