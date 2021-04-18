@@ -2,7 +2,11 @@ const routerBase = process.env.DEPLOY_ENV === 'GH_PAGES' ? {
   router: {
     base: '/AeroDemo/'
   }
-} : {}
+} : {
+  router: {
+    base: '/'
+  }
+}
 
 
 export default {

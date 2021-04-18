@@ -1,7 +1,7 @@
 <template>
   <div class="page-wrap">
     <Loader :page_ready="page_ready" @page-enter="pageEnter" />
-    <Menu page_img="/images/knk.png" />
+    <Menu page_img="images/knk.png" />
     <div class="container" :class="{'_hide-canvas': hideCanvas}" ref="container" />
     <div class="controls">
       <div class="control-btn cursor-pointer" @click="changeAssets('rin')">demo_1</div>
@@ -70,32 +70,32 @@ export default {
     return {
       assets: {
         rin: {
-          image: "/images/rin.png",
-          music: "/audio/secretG.mp3",
+          image: "images/rin.png",
+          music: "audio/secretG.mp3",
           threshold: 34,
           displacement: 4,
         },
         mayuri: {
-          image: "/images/mayuri.jpg",
-          music: "/audio/chronostatsis.mp3",
+          image: "images/mayuri.jpg",
+          music: "audio/chronostatsis.mp3",
           threshold: 34,
           displacement: 1,
         },
         yuki: {
-          image: "/images/yuki.jpg",
-          music: "/audio/kuroi.mp3",
+          image: "images/yuki.jpg",
+          music: "audio/kuroi.mp3",
           threshold: 100,
           displacement: 5,
         },
         sato: {
-          image: "/images/sato.png",
-          music: "/audio/shiroi.mp3",
+          image: "images/sato.png",
+          music: "audio/shiroi.mp3",
           threshold: 34,
           displacement: 2,
         },
         peko: {
-          image: "/images/peko.png",
-          music: "/audio/peko.mp3",
+          image: "images/peko.png",
+          music: "audio/peko.mp3",
           threshold: 34,
           displacement: 3,
         },
