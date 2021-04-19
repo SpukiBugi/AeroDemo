@@ -30,8 +30,8 @@
           <div class="create-item create-switch">
             <p>Position:</p>
             <div class="switch-wrap">
-              <div class="switch-item cursor-pointer" :class="{'_active': backgroundPosition === 'cover'}" @click="backgroundPosition = 'cover'; resize()">Cover</div>
-              <div class="switch-item cursor-pointer" :class="{'_active': backgroundPosition === 'contain'}" @click="backgroundPosition = 'contain'; resize()">Contain</div>
+              <div class="switch-item cursor-pointer" :class="{'_active': background_position === 'cover'}" @click="background_position = 'cover'; resize()">Cover</div>
+              <div class="switch-item cursor-pointer" :class="{'_active': background_position === 'contain'}" @click="background_position = 'contain'; resize()">Contain</div>
             </div>
           </div>
           
@@ -49,8 +49,8 @@ import { gsap } from "gsap";
 import Menu from "@/components/menu.vue";
 import Loader from "@/components/Loader";
 
-import fragmentShader from "@/assets/glsl/particles/fragmentShader.glsl";
-import vertexShader from "@/assets/glsl/particles/vertexShader.glsl";
+import FragmentShader from "@/assets/glsl/particles/FragmentShader.glsl";
+import VertexShader from "@/assets/glsl/particles/VertexShader.glsl";
 import IconCheck from '~/components/icons/IconCheck.vue';
 
 export default {
@@ -106,7 +106,7 @@ export default {
           displacement: 5,
         }
       },
-      currentAsset: "rin",
+      current_asset: "rin",
 
       music_ready: false,
       image_ready: false,
@@ -116,8 +116,8 @@ export default {
       input_image: "",
       input_music: "",
       input_displacement: 5,
-      backgroundPosition: "contain",
-      animationFrame: "",
+      background_position: "contain",
+      animation_frame: "",
       clock: "",
 
       scene: "",
@@ -127,12 +127,9 @@ export default {
       scale: 1,
 
       container: new THREE.Object3D(),
-      mapBass: 0,
-      mapTremble: 0,
-      mapMid: 0,
-      mapLowMid: 0,
-      mapHighMid: 0,
-      waveForm: "",
+      map_bass: 0,
+      map_low: 0,
+      map_high: 0,
       audio: "",
     };
   },
@@ -154,14 +151,14 @@ export default {
 
   created() {
     if (this.$route.query.demo) {
-      this.currentAsset = this.$route.query.demo;
+      this.current_asset = this.$route.query.demo;
     }
 
     if (this.$route.query.image && this.$route.query.music) {
       this.assets.custom.image = this.$route.query.image;
       this.assets.custom.music = this.$route.query.music;
       this.assets.custom.displacement = this.$route.query.displacement;
-      this.currentAsset = 'custom';
+      this.current_asset = 'custom';
     }
   },
 
@@ -176,7 +173,7 @@ export default {
   },
 
   beforeDestroy() {
-    cancelAnimationFrame(this.animationFrame);
+    cancelAnimationFrame(this.animation_frame);
     this.destroy();
 
     if (this.audio) {
@@ -215,10 +212,10 @@ export default {
 
     initParticles() {
       this.scene.add(this.container);
-      this.displacement = this.assets[this.currentAsset].displacement;
+      this.displacement = this.assets[this.current_asset].displacement;
       this.init(
-        this.assets[this.currentAsset].image,
-        this.assets[this.currentAsset].music
+        this.assets[this.current_asset].image,
+        this.assets[this.current_asset].music
       );
     },
 
@@ -226,7 +223,7 @@ export default {
       this.update();
       this.draw();
 
-      this.animationFrame = requestAnimationFrame(this.animate);
+      this.animation_frame = requestAnimationFrame(this.animate);
     },
 
     draw() {
@@ -237,9 +234,9 @@ export default {
       if (!this.object3D) return;
 
       const delta = this.clock.getDelta();
-      this.object3D.material.uniforms.uMusic.value = Math.max(1, this.mapBass);
-      this.object3D.material.uniforms.uMusicHigh.value = Math.max(1, this.mapHighMid);
-      this.object3D.material.uniforms.uMusicLow.value =  Math.max(1, this.mapLowMid);
+      this.object3D.material.uniforms.uMusicBass.value = Math.max(1, this.map_bass);
+      this.object3D.material.uniforms.uMusicHigh.value = Math.max(1, this.map_high);
+      this.object3D.material.uniforms.uMusicLow.value =  Math.max(1, this.map_low);
       this.object3D.material.uniforms.uTime.value += delta;
     },
 
@@ -273,7 +270,7 @@ export default {
       this.image_ready = false;
       this.music_ready = false;
       this.need_reinit = true;
-      this.currentAsset = asset;
+      this.current_asset = asset;
 
       this.hide(true).then(() => {
         this.init();
@@ -318,7 +315,7 @@ export default {
     init() {
       const loader = new THREE.TextureLoader();
 
-      loader.load(this.assets[this.currentAsset].image, (texture) => {
+      loader.load(this.assets[this.current_asset].image, (texture) => {
         this.texture = texture;
         this.texture.minFilter = THREE.LinearFilter;
         this.texture.magFilter = THREE.LinearFilter;
@@ -336,7 +333,7 @@ export default {
         let fft;
 
         p.preload = () => {
-          this.audio = p.loadSound(this.assets[this.currentAsset].music, () => {
+          this.audio = p.loadSound(this.assets[this.current_asset].music, () => {
             this.music_ready = true;
           });
         };
@@ -349,17 +346,11 @@ export default {
           fft.analyze();
 
           const bass = fft.getEnergy("bass");
-          const treble = fft.getEnergy("treble");
           const lowMid = fft.getEnergy("lowMid");
-          const mid = fft.getEnergy("mid");
           const highMid = fft.getEnergy("highMid");
-          const waveForm = fft.waveform();
-          this.mapBass = p.map(bass, 0, 255, 0, 2.0);
-          this.mapTremble = p.map(treble, 0, 255, 0, 2.0);
-          this.mapLowMid = p.map(lowMid, 0, 255, 0, 2.0);
-          this.mapMid = p.map(mid, 0, 255, 0, 2.0);
-          this.mapHighMid = p.map(highMid, 0, 255, 0, 2.0);
-          this.waveForm = waveForm;
+          this.map_bass = p.map(bass, 0, 255, 0, 2.0);
+          this.map_low = p.map(lowMid, 0, 255, 0, 2.0);
+          this.map_high = p.map(highMid, 0, 255, 0, 2.0);
         };
       };
 
@@ -373,9 +364,9 @@ export default {
       let originalColors;
 
       if (discard) {
-        // discard pixels darker than threshold #22
+        // discard pixels darker than threshold
         numVisible = 0;
-        threshold = this.assets[this.currentAsset].threshold;
+        threshold = this.assets[this.current_asset].threshold;
         const img = this.texture.image;
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -398,18 +389,16 @@ export default {
         uSize: { value: 0.5 },
         uTextureSize: { value: new THREE.Vector2(this.width, this.height) },
         uTexture: { value: this.texture },
-        uDisplacement: { value: this.assets[this.currentAsset].displacement },
-
-        // This variable was added to use audio values in the vertex shader
-        uMusic: { value: null },
+        uDisplacement: { value: this.assets[this.current_asset].displacement },
+        uMusicBass: { value: null },
         uMusicHigh: { value: null },
         uMusicLow: { value: null },
       };
 
       const material = new THREE.RawShaderMaterial({
         uniforms,
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
+        vertexShader: VertexShader,
+        fragmentShader: FragmentShader,
         depthTest: false,
         transparent: true,
       });
@@ -531,7 +520,7 @@ export default {
     resize3D() {
       if (!this.object3D) return;
 
-      if (this.backgroundPosition === "contain") {
+      if (this.background_position === "contain") {
         const vFOV = (this.camera.fov * Math.PI) / 180;
         const visibleHeight = 2 * Math.tan(vFOV / 2) * this.distance;
         const relative_h = visibleHeight / this.height;

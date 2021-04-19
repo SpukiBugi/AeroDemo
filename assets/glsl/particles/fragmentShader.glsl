@@ -1,6 +1,6 @@
 precision highp float;
 uniform sampler2D uTexture;
-uniform float uMusic;
+uniform float uMusicBass;
 uniform float uMusicHigh;
 uniform float uMusicLow;
 uniform float uTime;

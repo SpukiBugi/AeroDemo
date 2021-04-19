@@ -8,7 +8,7 @@ uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform float uDisplacement;
-uniform float uMusic;
+uniform float uMusicBass;
 uniform float uTime;
 uniform float uRandom;
 uniform float uDepth;
@@ -44,9 +44,9 @@ void main() {
 
     // randomise and utilize uMusic variable
 
-    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (pow(uMusic, uDisplacement) * 0.2);
-    float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, uMusic * 0.1)));
-    displaced.z += rndz * (random(pindex) * uDepth) * (pow(uMusic, uDisplacement) * 6.0);
+    displaced.xy += vec2(random(pindex) - 0.25, random(offset.x + pindex) - 0.25) * uRandom * (pow(uMusicBass, uDisplacement) * 0.2);
+    float rndz = (random(pindex) + snoise(vec2(pindex * 0.1, uMusicBass * 0.1)));
+    displaced.z += rndz * (random(pindex) * uDepth) * (pow(uMusicBass, uDisplacement) * 6.0);
 
     // center
 
@@ -61,7 +61,7 @@ void main() {
 
     // particle size
 
-    float psize = (snoise(vec2(uTime* uMusic, pindex) * 0.5) + 2.0) * uMusic * 0.5;
+    float psize = (snoise(vec2(uTime* uMusicBass, pindex) * 0.5) + 2.0) * uMusicBass * 0.5;
     psize *= max(grey, 0.2);
     psize *= uSize;
 
