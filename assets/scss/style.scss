@@ -1,6 +1,5 @@
 @import "./fonts.scss";
 @import "./normalize.scss";
-@import "./mixins.scss";
 
 html {
   font-family: $FNT_PRIMARY;
@@ -10,8 +9,19 @@ html {
     cursor: none;
   }
 
-  .dg.main .close-button {
+  .dg.main .close-button.close-bottom {
     cursor: none;
+
+    @include respond-to(xs) {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .dg.a {
+    @include respond-to(xs) {
+      margin-right: 0;
+    }
   }
 }
 

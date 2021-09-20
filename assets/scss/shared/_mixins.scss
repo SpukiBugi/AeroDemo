@@ -1,0 +1,31 @@
+@mixin respond-to($name, $bp: $breakpoints) {
+    $max: breakpoint-max($name, $bp);
+
+    @if $max {
+        @media (max-width: $max) {
+            @content;
+        }
+    }
+
+    @else {
+        @content;
+    }
+}
+
+@function breakpoint-max($name, $bp) {
+    $next: breakpoint-next($name, $bp);
+
+    @return if($next, breakpoint-min($next, $bp) - .02, null);
+}
+
+@function breakpoint-min($name, $bp: $breakpoints) {
+    $min: map-get($bp, $name);
+
+    @return if($min != 0, $min, null);
+}
+
+@function breakpoint-next($name, $bp, $breakpoint-names: map-keys($bp)) {
+    $n: index($breakpoint-names, $name);
+
+    @return if($n != null and $n < length($breakpoint-names), nth($breakpoint-names, $n + 1), null);
+}

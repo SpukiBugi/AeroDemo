@@ -584,6 +584,12 @@ export default {
   color: white;
   background-color: rgba(0, 0, 0, 0.4);
   border-bottom-left-radius: 8px;
+
+  @include respond-to(xs) {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+  }
 }
 
 .control-btn {
@@ -592,6 +598,12 @@ export default {
   align-items: center;
   width: 85px;
   padding: 4px 0 8px;
+
+  &:nth-child(4) {
+    @include respond-to(xs) {
+      display: none;
+    }
+  }
 }
 
 .control-create {
@@ -599,6 +611,10 @@ export default {
   display: flex;
   justify-content: center;
   width: 110px;
+
+  @include respond-to(xs) {
+    margin-left: auto;
+  }
 }
 
 .create-add {

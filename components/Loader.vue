@@ -113,6 +113,10 @@ export default {
   &._entered {
     opacity: 0;
     pointer-events: none;
+
+    .icon {
+      pointer-events: none;
+    }
   }
 }
 

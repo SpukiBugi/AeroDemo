@@ -1,1 +1,10 @@
 $FNT_PRIMARY: "Crimson Text";
+
+/* Breakpoints: From xs to sm, from sm to md, from md to lg, after that simple desktop */
+$breakpoints: (
+    xs: 0,
+    sm: 768px,
+    md: 992px,
+    lg: 1280px,
+    xl: 1441px,
+);

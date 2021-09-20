@@ -222,7 +222,9 @@ export default {
     },
 
     initGUI() {
-      this.gui = new dat.GUI();
+      this.gui = new dat.GUI({
+        width: this.$mq === 'xs' ? 174 : undefined,
+      });
       let snowController = this.gui.add({snow: this.rain_count}, 'snow', 1, this.max_rain_count, 1);
       snowController.onChange((value) => {
         this.changeRain(value);

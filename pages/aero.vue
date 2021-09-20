@@ -138,7 +138,9 @@ export default {
     },
 
     initGUI() {
-      this.gui = new dat.GUI();
+      this.gui = new dat.GUI({
+        width: this.$mq === 'xs' ? 174 : undefined,
+      });
       let planesController = this.gui.add({planes: 1}, 'planes', 1, 10, 1);
       planesController.onChange((value) => {
         this.changePlaneNumber(value);
