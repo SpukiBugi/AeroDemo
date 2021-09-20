@@ -632,6 +632,13 @@ export default {
     transform: scaleY(1);
     opacity: 1;
   }
+
+  @include respond-to(xs) {
+    top: auto;
+    bottom: 100%;
+    flex-direction: column-reverse;
+    transform-origin: bottom;
+  }
 }
 
 .create-item {
