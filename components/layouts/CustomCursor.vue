@@ -180,6 +180,7 @@ export default {
       clickedElements.forEach((item) => {
         item.addEventListener("click", this.handleMouseLeave);
       });
+      this.$root.$on('route-change', this.handleMouseLeave);
 
       this.hoverElements = hoverElements;
       this.clickedElements = clickedElements;

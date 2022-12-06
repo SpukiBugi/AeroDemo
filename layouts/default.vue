@@ -19,6 +19,12 @@ export default {
     isMobile() {
       return this.$mq === 'xs' || this.$mq === 'sm'
     }
+  },
+
+  watch: {
+    $route() {
+      this.$root.$emit('route-change');
+    },
   }
 }
 </script>

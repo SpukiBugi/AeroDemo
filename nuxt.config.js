@@ -24,7 +24,7 @@ export default {
     ],
     link: [
         // Favicons
-        {rel: 'icon', href: '/favicons/favicon.svg'},
+        {rel: 'icon', href: process.env.DEPLOY_ENV === 'GH_PAGES' ? '/AeroDemo/favicons/favicon.svg' : '/favicons/favicon.svg'},
     ],
 
     script: [
