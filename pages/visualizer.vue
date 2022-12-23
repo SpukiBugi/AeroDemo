@@ -70,7 +70,7 @@ export default {
     return {
       assets: {
         rin: {
-          image: "images/rin.png",
+          image: "images/rin.jpg",
           music: "audio/secretG.mp3",
           threshold: 34,
           displacement: 4,
@@ -88,7 +88,7 @@ export default {
           displacement: 5,
         },
         sato: {
-          image: "images/sato.png",
+          image: "images/sato.jpg",
           music: "audio/shiroi.mp3",
           threshold: 34,
           displacement: 2,

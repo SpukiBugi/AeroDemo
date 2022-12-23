@@ -31,7 +31,7 @@ export default {
       animationFrame: "",
 
       distance: 500,
-      image: "images/back.png",
+      image: "images/back.jpg",
       image2: "images/smoke.png",
       scene: "",
       camera: "",
