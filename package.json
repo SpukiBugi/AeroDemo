@@ -27,7 +27,7 @@
   "devDependencies": {
     "@nuxtjs/style-resources": "^1.0.0",
     "cross-env": "^7.0.2",
-    "node-sass": "^4.14.0",
+    "node-sass": "^8.0.0",
     "push-dir": "^0.4.1",
     "sass-loader": "^8.0.2",
     "three": "^0.125.0"
